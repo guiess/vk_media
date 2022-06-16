@@ -13,7 +13,7 @@
 </head>
 <body >
 
-${album.albumFull.title}<br>
+${album.title}<br>
 <img  title="title" alt="alt" src="${album.coverURI}" height="100">
 <br>
 

@@ -22,8 +22,8 @@
     <tbody>
     <c:forEach items="${albums}" var="album">
         <tr>
-            <td>${album.albumFull.title}</td>
-            <td><a href="/albums/${album.albumFull.id}"><img  title="title" alt="alt" src="${album.coverURI}" height="100"></a></td>
+            <td>${album.title}</td>
+            <td><a href="/albums/${album.id}"><img  title="title" alt="alt" src="${album.coverURI}" height="100"></a></td>
         </tr>
     </c:forEach>
     </tbody>
