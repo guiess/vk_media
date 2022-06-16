@@ -1,0 +1,20 @@
+package com.vk_media.vkmedia;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+
+@SpringBootApplication(scanBasePackages = "com.vk_media.vkmedia")
+public class VkMediaApplication  extends SpringBootServletInitializer {
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+		return builder.sources(VkMediaApplication.class);
+	}
+
+	public static void main(String[] args) {
+		SpringApplication.run(VkMediaApplication.class, args);
+	}
+
+}
