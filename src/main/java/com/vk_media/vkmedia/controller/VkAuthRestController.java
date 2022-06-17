@@ -1,32 +1,26 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
-import com.vk_media.vkmedia.service.VkService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.vk_media.vkmedia.service.VkAuthService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.stream.Collectors;
-
 @RestController
 @RequestMapping("/init")
 public class VkAuthRestController {
 
-    //@Autowired
-    VkService vkService;
+    VkAuthService vkAuthService;
 
-    public VkAuthRestController(VkService vkService) {
-        this.vkService = vkService;
+    public VkAuthRestController(VkAuthService vkAuthService) {
+        this.vkAuthService = vkAuthService;
     }
 
     @GetMapping
     public ModelAndView setCode(@RequestParam("code") String code) {
-        vkService.setCode(code);
         try {
-            vkService.initialize();
+            vkAuthService.initialize(code);
         } catch (Exception e) {
             System.out.println("!!!!! VkInitRestController.setCode Exception: ");
             e.printStackTrace();

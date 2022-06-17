@@ -14,5 +14,6 @@ import java.net.URI;
 public class PhotoWithImage {
     private int id;
     private int albumId;
+    private URI previewPhotoURI;
     private URI photoURI;
 }

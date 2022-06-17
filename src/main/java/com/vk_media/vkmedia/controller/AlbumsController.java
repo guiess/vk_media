@@ -1,33 +1,28 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk.api.sdk.objects.photos.Photo;
 import com.vk_media.vkmedia.dto.Album;
-import com.vk_media.vkmedia.service.VkService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.vk_media.vkmedia.service.VkPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 @RequestMapping("/albums")
 public class AlbumsController {
 
-    @Autowired
-    VkService vkService;
+    VkPhotoService vkPhotoService;
 
 
-    /*public AlbumsController(VkService vkService) {
-        this.vkService = vkService;
-    }*/
+    public AlbumsController(VkPhotoService vkPhotoService) {
+        this.vkPhotoService = vkPhotoService;
+    }
 
     @GetMapping
     public String viewAlbums(Model model) {
         try {
-            model.addAttribute("albums", vkService.getPhotoAlbums());
+            model.addAttribute("albums", vkPhotoService.getPhotoAlbums());
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("Error", e);
@@ -36,15 +31,39 @@ public class AlbumsController {
     }
 
     @GetMapping("/{id}")
-    public String viewAlbum(@PathVariable String id, Model model) {
+    public String viewAlbum(@PathVariable int id, Model model) {
         try {
-            Album album = vkService.getAlbumById(Integer.parseInt(id));
-            model.addAttribute("album", album);
-            model.addAttribute("photos", vkService.getPhotosByAlbum(album));
+            model.addAttribute("album", vkPhotoService.getAlbumById(id));
+            model.addAttribute("photos", vkPhotoService.getPhotosByAlbumId(id));
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("Error", e);
         }
         return "album";
+    }
+
+    @GetMapping("/find")
+    public ModelAndView findAlbum(Model model) {
+        return new ModelAndView("findAlbum", "album", new Album());
+    }
+
+    @PostMapping("/find")
+    public String showFoundAlbum(@ModelAttribute("id") Integer id, BindingResult result, Model model) {
+        if (id == 0) {
+            model.addAttribute("result", "Not found");
+        }
+        try {
+            Album album = vkPhotoService.getAlbumById(id);
+            if (album != null) {
+                model.addAttribute("album", vkPhotoService.getAlbumById(id));
+                model.addAttribute("photos", vkPhotoService.getPhotosByAlbumId(id));
+            } else {
+                model.addAttribute("result", "Not found");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("Error", e);
+        }
+        return "findAlbum";
     }
 }
