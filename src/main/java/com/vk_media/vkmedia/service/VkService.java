@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Comparator;
@@ -32,17 +33,17 @@ public class VkService {
     @Value("${vk.app.secret}")
     private String vkAppSecret;
 
-    private static final String AUTH_REDIRECT_URL = "http://localhost:8080/init";
-
     private String code;
     private final VkApiClient vk;
     private UserActor actor;
     private int userId;
     private List<Album> albums;
+    private final String authRedirectUrl;
 
     {
         TransportClient transportClient = new HttpTransportClient();
         vk = new VkApiClient(transportClient);
+        authRedirectUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString() + "/init";
     }
 
     public void setCode(String code) {
@@ -54,7 +55,7 @@ public class VkService {
     }
 
     public String getAuthUrl() {
-        return "https://oauth.vk.com/authorize?client_id=" + vkAppId + "&display=page&scope=12&response_type=code&v=5.131&redirect_uri=" + AUTH_REDIRECT_URL;
+        return "https://oauth.vk.com/authorize?client_id=" + vkAppId + "&display=page&scope=12&response_type=code&v=5.131&redirect_uri=" + authRedirectUrl;
     }
 
     public void initialize() throws ApiException, ClientException {
@@ -66,7 +67,7 @@ public class VkService {
                 .userAuthorizationCodeFlow(
                         vkAppId,
                         vkAppSecret,
-                        AUTH_REDIRECT_URL,
+                        authRedirectUrl,
                         code
                 )
                 .execute();
