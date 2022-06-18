@@ -11,6 +11,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 @RequestMapping("/photos")
@@ -36,18 +37,19 @@ public class PhotosController {
         System.out.println("!! model" + result.getModel());
         if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "Not found");
-        }
-        model.addAttribute("tag", tag);
-        try {
-            List<PhotoWithImage> photos = vkPhotoService.getPhotosByTag(tag, true);
-            if (!photos.isEmpty()) {
-                model.addAttribute("photos", photos);
-            } else {
-                model.addAttribute("result", "Not found");
+        } else {
+            model.addAttribute("tag", tag);
+            try {
+                List<PhotoWithImage> photos = vkPhotoService.getPhotosByTag(tag.toLowerCase(), true);
+                if (!photos.isEmpty()) {
+                    model.addAttribute("photos", photos);
+                } else {
+                    model.addAttribute("result", "Not found");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("Error", e);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("Error", e);
         }
         return "findPhotos";
     }
@@ -66,13 +68,13 @@ public class PhotosController {
     ) {
         if (imageUrl == null || imageUrl.isEmpty()) {
             model.addAttribute("result", "Image url should be set");
-        }
+        } else
         if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "tag should be set");
-        }
+        } else
         try {
             PhotoWithImage newPhoto = new PhotoWithImage();
-            newPhoto.setTags(tag);
+            newPhoto.setTags(tag.toLowerCase());
             newPhoto.setPhotoURI(URI.create(imageUrl));
             vkPhotoService.addPhotoWithTag(newPhoto);
             model.addAttribute("result", "photo added");
