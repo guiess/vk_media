@@ -43,8 +43,8 @@ public class AlbumsController {
     }
 
     @GetMapping("/find")
-    public ModelAndView findAlbum(Model model) {
-        return new ModelAndView("findAlbum", "album", new Album());
+    public String findAlbum(Model model) {
+        return "findAlbum";
     }
 
     @PostMapping("/find")

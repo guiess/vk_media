@@ -7,6 +7,7 @@ import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.repository.MongoDBRepository;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -20,9 +21,11 @@ import java.util.stream.Collectors;
 public class VkPhotoService {
 
     VkAuthService vkAuthService;
+    MongoDBRepository mongoDBRepository;
 
-    public VkPhotoService(VkAuthService vkAuthService) {
+    public VkPhotoService(VkAuthService vkAuthService, MongoDBRepository mongoDBRepository) {
         this.vkAuthService = vkAuthService;
+        this.mongoDBRepository = mongoDBRepository;
     }
 
     public List<Album> getPhotoAlbums() {
@@ -73,11 +76,25 @@ public class VkPhotoService {
                 .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).execute().getItems();
         return photos.stream()
                         .map(photo -> new PhotoWithImage(
-                                photo.getId(),
+                                photo.getId().toString(),
                                 photo.getAlbumId(),
                                 getImageURIFromSizes(photo.getSizes(), 133),
-                                getImageURIFromSizes(photo.getSizes())))
+                                getImageURIFromSizes(photo.getSizes()),
+                                null))
                         .collect(Collectors.toList());
+    }
+
+    public List<PhotoWithImage> getPhotosByTag(String tag, boolean isRegex) {
+        if (isRegex) {
+            return mongoDBRepository.findByTagsRegex(tag);
+        }
+        return mongoDBRepository.findByTags(tag);
+    }
+
+    public void addPhotoWithTag(PhotoWithImage photo) {
+        if (photo != null && photo.getTags() != null && !photo.getTags().isEmpty()) {
+            mongoDBRepository.insert(photo);
+        }
     }
 
 }
