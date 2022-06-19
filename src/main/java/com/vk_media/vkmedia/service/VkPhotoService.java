@@ -1,5 +1,6 @@
 package com.vk_media.vkmedia.service;
 
+import com.mongodb.client.DistinctIterable;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.photos.Photo;
@@ -8,13 +9,11 @@ import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
 import com.vk_media.vkmedia.repository.MongoDBRepository;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,10 +21,12 @@ public class VkPhotoService {
 
     VkAuthService vkAuthService;
     MongoDBRepository mongoDBRepository;
+    MongoTemplate mongoTemplate;
 
-    public VkPhotoService(VkAuthService vkAuthService, MongoDBRepository mongoDBRepository) {
+    public VkPhotoService(VkAuthService vkAuthService, MongoDBRepository mongoDBRepository, MongoTemplate mongoTemplate) {
         this.vkAuthService = vkAuthService;
         this.mongoDBRepository = mongoDBRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public List<Album> getPhotoAlbums() {
@@ -95,6 +96,13 @@ public class VkPhotoService {
         if (photo != null && photo.getTags() != null && !photo.getTags().isEmpty()) {
             mongoDBRepository.insert(photo);
         }
+    }
+
+    public List<String> getExistingTags() {
+        List<String> tags = new ArrayList<>();
+        DistinctIterable<String> iterable = mongoTemplate.getCollection("photos").distinct("tags", String.class);
+        iterable.forEach(tags::add);
+        return tags;
     }
 
 }

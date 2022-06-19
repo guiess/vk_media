@@ -7,7 +7,7 @@
 </head>
 <body >
 
-<h3>Find album by id</h3>
+<h3>Find photos by tag</h3>
 <form:form action="${pageContext.request.contextPath}/photos/findPhotosByTag">
     <table>
         <tr>
@@ -33,7 +33,8 @@
                 <td>
                     <a href='#' onclick='javascript:window.open("${photos[i.index].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
                         <img src="${photos[i.index].previewPhotoURI != null? photos[i.index].previewPhotoURI: photos[i.index].photoURI}" height="100" alt="">
-                    </a>
+                    </a> <br>
+                    ${photos[i.index].tags}
                 </td>
 
 
@@ -41,28 +42,32 @@
                     <td>
                         <a href='#' onclick='javascript:window.open("${photos[i.index+1].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
                             <img src="${photos[i.index+1].previewPhotoURI != null? photos[i.index+1].previewPhotoURI: photos[i.index+1].photoURI}" height="100" alt="">
-                        </a>
+                        </a> <br>
+                        ${photos[i.index+1].tags}
                     </td>
                 </c:if>
                 <c:if test="${photos[i.index+2] != null}">
                     <td>
                         <a href='#' onclick='javascript:window.open("${photos[i.index+2].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
                             <img src="${photos[i.index+2].previewPhotoURI != null? photos[i.index+2].previewPhotoURI: photos[i.index+2].photoURI}" height="100" alt="">
-                        </a>
+                        </a> <br>
+                        ${photos[i.index+2].tags}
                     </td>
                 </c:if>
                 <c:if test="${photos[i.index+3] != null}">
                     <td>
                         <a href='#' onclick='javascript:window.open("${photos[i.index+3].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
                             <img src="${photos[i.index+3].previewPhotoURI != null? photos[i.index+3].previewPhotoURI: photos[i.index+3].photoURI}" height="100" alt="">
-                        </a>
+                        </a> <br>
+                        ${photos[i.index+3].tags}
                     </td>
                 </c:if>
                 <c:if test="${photos[i.index+4] != null}">
                     <td>
                         <a href='#' onclick='javascript:window.open("${photos[i.index+4].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
                             <img src="${photos[i.index+4].previewPhotoURI != null? photos[i.index+4].previewPhotoURI: photos[i.index+4].photoURI}" height="100" alt="">
-                        </a>
+                        </a> <br>
+                        ${photos[i.index+4].tags}
                     </td>
                 </c:if>
             </tr>
@@ -70,6 +75,13 @@
         </tbody>
     </table> <br>
 </c:if>
+
+<c:if test="${tags != null}">
+    Existing tags: <br>
+
+    ${tags}
+</c:if>
+
 <c:if test="${Error != null}">
     Error: ${Error}<br>
 </c:if>

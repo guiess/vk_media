@@ -12,6 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/photos")
@@ -25,6 +26,7 @@ public class PhotosController {
 
     @GetMapping("/findPhotosByTag")
     public String findPhotosByTag(Model model) {
+        model.addAttribute("tags", String.join(";", vkPhotoService.getExistingTags()));
         return "findPhotos";
     }
 
@@ -68,19 +70,19 @@ public class PhotosController {
     ) {
         if (imageUrl == null || imageUrl.isEmpty()) {
             model.addAttribute("result", "Image url should be set");
-        } else
-        if (tag == null || tag.isEmpty()) {
+        } else if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "tag should be set");
-        } else
-        try {
-            PhotoWithImage newPhoto = new PhotoWithImage();
-            newPhoto.setTags(tag.toLowerCase());
-            newPhoto.setPhotoURI(URI.create(imageUrl));
-            vkPhotoService.addPhotoWithTag(newPhoto);
-            model.addAttribute("result", "photo added");
-        } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("Error", e);
+        } else {
+            try {
+                PhotoWithImage newPhoto = new PhotoWithImage();
+                newPhoto.setTags(tag.toLowerCase());
+                newPhoto.setPhotoURI(URI.create(imageUrl));
+                vkPhotoService.addPhotoWithTag(newPhoto);
+                model.addAttribute("result", "photo added");
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("Error", e);
+            }
         }
         return "addPhoto";
     }
