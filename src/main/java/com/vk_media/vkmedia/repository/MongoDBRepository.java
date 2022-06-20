@@ -14,7 +14,7 @@ public interface MongoDBRepository extends MongoRepository<PhotoWithImage, Strin
 
     List<PhotoWithImage> findByTags(@Param("tags") String tags);
 
-    @Query(value = "{\"tags\": {$regex : ?0} }")
+    @Query(value = "{tags: {$regex : ?0} }")
     List<PhotoWithImage> findByTagsRegex(@Param("tags") String tags);
 
 }

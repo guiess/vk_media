@@ -36,7 +36,7 @@ public class PhotosController {
             BindingResult result,
             Model model
     ) {
-        System.out.println("!! model" + result.getModel());
+        model.addAttribute("tags", String.join(";", vkPhotoService.getExistingTags()));
         if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "Not found");
         } else {

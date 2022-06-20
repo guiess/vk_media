@@ -33,14 +33,4 @@ public class VkAuthRestController {
         }
         return new ModelAndView("redirect:/");
     }
-
-    @Autowired
-    MongoDBRepository mongoDBRepository;
-    @GetMapping("/test")
-    public List<PhotoWithImage> findPhoto() {
-        System.out.println("!!! mongo count "+mongoDBRepository.count());
-
-        //return mongoDBRepository.findAll();
-        return mongoDBRepository.findByTagsRegex("t");
-    }
 }

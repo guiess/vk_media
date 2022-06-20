@@ -10,6 +10,7 @@ import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
 import com.vk_media.vkmedia.repository.MongoDBRepository;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.MongoRegexCreator;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -87,9 +88,15 @@ public class VkPhotoService {
 
     public List<PhotoWithImage> getPhotosByTag(String tag, boolean isRegex) {
         if (isRegex) {
-            return mongoDBRepository.findByTagsRegex(tag);
+            return mongoDBRepository.findByTagsRegex(convertToRegex(tag));
         }
         return mongoDBRepository.findByTags(tag);
+    }
+
+    private String convertToRegex(String tags) {
+        return "^" +
+                Arrays.stream(tags.split(" ")).map(tag -> "(?=.*?" + tag + ")").collect(Collectors.joining());
+
     }
 
     public void addPhotoWithTag(PhotoWithImage photo) {
@@ -102,7 +109,7 @@ public class VkPhotoService {
         List<String> tags = new ArrayList<>();
         DistinctIterable<String> iterable = mongoTemplate.getCollection("photos").distinct("tags", String.class);
         iterable.forEach(tags::add);
-        return tags;
+        return tags.stream().map(tag -> Arrays.asList(tag.split(" "))).flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
     }
 
 }
