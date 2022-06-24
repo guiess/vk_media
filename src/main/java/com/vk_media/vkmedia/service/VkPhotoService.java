@@ -1,6 +1,5 @@
 package com.vk_media.vkmedia.service;
 
-import com.mongodb.client.DistinctIterable;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.photos.Photo;
@@ -8,9 +7,7 @@ import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
-import com.vk_media.vkmedia.repository.MongoDBRepository;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.MongoRegexCreator;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -21,13 +18,9 @@ import java.util.stream.Collectors;
 public class VkPhotoService {
 
     VkAuthService vkAuthService;
-    MongoDBRepository mongoDBRepository;
-    MongoTemplate mongoTemplate;
 
-    public VkPhotoService(VkAuthService vkAuthService, MongoDBRepository mongoDBRepository, MongoTemplate mongoTemplate) {
+    public VkPhotoService(VkAuthService vkAuthService) {
         this.vkAuthService = vkAuthService;
-        this.mongoDBRepository = mongoDBRepository;
-        this.mongoTemplate = mongoTemplate;
     }
 
     public List<Album> getPhotoAlbums() {
@@ -78,38 +71,12 @@ public class VkPhotoService {
                 .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).execute().getItems();
         return photos.stream()
                         .map(photo -> new PhotoWithImage(
+                                ObjectId.get(),
                                 photo.getId().toString(),
                                 photo.getAlbumId(),
-                                getImageURIFromSizes(photo.getSizes(), 133),
-                                getImageURIFromSizes(photo.getSizes()),
+                                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                                getImageURIFromSizes(photo.getSizes()).toString(),
                                 null))
                         .collect(Collectors.toList());
     }
-
-    public List<PhotoWithImage> getPhotosByTag(String tag, boolean isRegex) {
-        if (isRegex) {
-            return mongoDBRepository.findByTagsRegex(convertToRegex(tag));
-        }
-        return mongoDBRepository.findByTags(tag);
-    }
-
-    private String convertToRegex(String tags) {
-        return "^" +
-                Arrays.stream(tags.split(" ")).map(tag -> "(?=.*?" + tag + ")").collect(Collectors.joining());
-
-    }
-
-    public void addPhotoWithTag(PhotoWithImage photo) {
-        if (photo != null && photo.getTags() != null && !photo.getTags().isEmpty()) {
-            mongoDBRepository.insert(photo);
-        }
-    }
-
-    public List<String> getExistingTags() {
-        List<String> tags = new ArrayList<>();
-        DistinctIterable<String> iterable = mongoTemplate.getCollection("photos").distinct("tags", String.class);
-        iterable.forEach(tags::add);
-        return tags.stream().map(tag -> Arrays.asList(tag.split(" "))).flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
-    }
-
 }

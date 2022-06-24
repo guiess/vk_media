@@ -1,32 +1,27 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
-import com.vk_media.vkmedia.service.VkPhotoService;
+import com.vk_media.vkmedia.service.MongoPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/photos")
 public class PhotosController {
 
-    VkPhotoService vkPhotoService;
+    MongoPhotoService mongoPhotoService;
 
-    public PhotosController(VkPhotoService vkPhotoService) {
-        this.vkPhotoService = vkPhotoService;
+    public PhotosController(MongoPhotoService mongoPhotoService) {
+        this.mongoPhotoService = mongoPhotoService;
     }
 
     @GetMapping("/findPhotosByTag")
     public String findPhotosByTag(Model model) {
-        model.addAttribute("tags", String.join(";", vkPhotoService.getExistingTags()));
+        model.addAttribute("tags", String.join(";", mongoPhotoService.getExistingTags()));
         return "findPhotos";
     }
 
@@ -36,13 +31,13 @@ public class PhotosController {
             BindingResult result,
             Model model
     ) {
-        model.addAttribute("tags", String.join(";", vkPhotoService.getExistingTags()));
+        model.addAttribute("tags", String.join(";", mongoPhotoService.getExistingTags()));
         if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "Not found");
         } else {
             model.addAttribute("tag", tag);
             try {
-                List<PhotoWithImage> photos = vkPhotoService.getPhotosByTag(tag.toLowerCase(), true);
+                List<PhotoWithImage> photos = mongoPhotoService.getPhotosByTag(tag.toLowerCase());
                 if (!photos.isEmpty()) {
                     model.addAttribute("photos", photos);
                 } else {
@@ -76,8 +71,8 @@ public class PhotosController {
             try {
                 PhotoWithImage newPhoto = new PhotoWithImage();
                 newPhoto.setTags(tag.toLowerCase());
-                newPhoto.setPhotoURI(URI.create(imageUrl));
-                vkPhotoService.addPhotoWithTag(newPhoto);
+                newPhoto.setPhotoURI(/*URI.create(imageUrl)*/imageUrl);
+                mongoPhotoService.addPhotoWithTag(newPhoto);
                 model.addAttribute("result", "photo added");
             } catch (Exception e) {
                 e.printStackTrace();
