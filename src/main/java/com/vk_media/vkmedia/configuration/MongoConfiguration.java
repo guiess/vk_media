@@ -14,10 +14,14 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 public class MongoConfiguration {
 
     @Bean
-    MongoCollection<PhotoWithImage> mongoPhotoCollection(MongoTemplate mongoTemplate) {
-        CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(
+    CodecRegistry pojoCodecRegistry() {
+        return CodecRegistries.fromRegistries(
                 MongoClientSettings.getDefaultCodecRegistry(),
                 CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+    }
+
+    @Bean
+    MongoCollection<PhotoWithImage> mongoPhotoCollection(MongoTemplate mongoTemplate, CodecRegistry pojoCodecRegistry) {
         return mongoTemplate.getCollection("photos")
                 .withDocumentClass(PhotoWithImage.class)
                 .withCodecRegistry(pojoCodecRegistry);

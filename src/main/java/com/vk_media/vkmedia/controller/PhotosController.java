@@ -21,7 +21,7 @@ public class PhotosController {
 
     @GetMapping("/findPhotosByTag")
     public String findPhotosByTag(Model model) {
-        model.addAttribute("tags", String.join(";", mongoPhotoService.getExistingTags()));
+        model.addAttribute("tags", mongoPhotoService.getExistingTags());
         return "findPhotos";
     }
 
@@ -31,7 +31,7 @@ public class PhotosController {
             BindingResult result,
             Model model
     ) {
-        model.addAttribute("tags", String.join(";", mongoPhotoService.getExistingTags()));
+        model.addAttribute("tags", mongoPhotoService.getExistingTags());
         if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "Not found");
         } else {

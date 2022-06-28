@@ -12,7 +12,8 @@
     <table>
         <tr>
             <td><label>Tag</label></td>
-            <td><input type="text" name="tag" value="${tag}" /></td>
+            <td><input id="tagField" type="text" name="tag" value="${tag}" />
+                <button type="button" onclick="javascript:clearTagField()">Clear</button></td>
         </tr>
         <tr>
             <td><input type="submit" value="Find"/></td>
@@ -28,63 +29,48 @@
 
     <table>
         <tbody>
-        <c:forEach items="${photos}" var="photo" step="5" varStatus="i">
-            <tr>
+        <tr>
+        <c:forEach items="${photos}" var="photo" varStatus="i">
                 <td>
                     <a href='#' onclick='javascript:window.open("${photos[i.index].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
                         <img src="${photos[i.index].previewPhotoURI != null? photos[i.index].previewPhotoURI: photos[i.index].photoURI}" height="100" alt="">
                     </a> <br>
                     ${photos[i.index].tags}
                 </td>
-
-
-                <c:if test="${photos[i.index+1] != null}">
-                    <td>
-                        <a href='#' onclick='javascript:window.open("${photos[i.index+1].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
-                            <img src="${photos[i.index+1].previewPhotoURI != null? photos[i.index+1].previewPhotoURI: photos[i.index+1].photoURI}" height="100" alt="">
-                        </a> <br>
-                        ${photos[i.index+1].tags}
-                    </td>
-                </c:if>
-                <c:if test="${photos[i.index+2] != null}">
-                    <td>
-                        <a href='#' onclick='javascript:window.open("${photos[i.index+2].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
-                            <img src="${photos[i.index+2].previewPhotoURI != null? photos[i.index+2].previewPhotoURI: photos[i.index+2].photoURI}" height="100" alt="">
-                        </a> <br>
-                        ${photos[i.index+2].tags}
-                    </td>
-                </c:if>
-                <c:if test="${photos[i.index+3] != null}">
-                    <td>
-                        <a href='#' onclick='javascript:window.open("${photos[i.index+3].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
-                            <img src="${photos[i.index+3].previewPhotoURI != null? photos[i.index+3].previewPhotoURI: photos[i.index+3].photoURI}" height="100" alt="">
-                        </a> <br>
-                        ${photos[i.index+3].tags}
-                    </td>
-                </c:if>
-                <c:if test="${photos[i.index+4] != null}">
-                    <td>
-                        <a href='#' onclick='javascript:window.open("${photos[i.index+4].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");' title='Pop Up'>
-                            <img src="${photos[i.index+4].previewPhotoURI != null? photos[i.index+4].previewPhotoURI: photos[i.index+4].photoURI}" height="100" alt="">
-                        </a> <br>
-                        ${photos[i.index+4].tags}
-                    </td>
-                </c:if>
-            </tr>
+            <c:if test="${i.count % 5 == 0}">
+                </tr><tr>
+            </c:if>
         </c:forEach>
+        </tr>
         </tbody>
     </table> <br>
 </c:if>
 
 <c:if test="${tags != null}">
-    Existing tags: <br>
-
-    ${tags}
+    Existing tags (click to add): <br>
+        <c:forEach items="${tags}" var="singleTag" varStatus="i">
+            <u onclick="javascript:addTagToSearch('${singleTag}')">${singleTag}</u>
+            <c:if test="${i.count % 5 == 0}">
+                <br>
+            </c:if>
+        </c:forEach>
 </c:if>
 
 <c:if test="${Error != null}">
     Error: ${Error}<br>
 </c:if>
+
+<script type="text/javascript">
+    function addTagToSearch(tag)
+    {
+        document.getElementById("tagField").value = document.getElementById("tagField").value + ' ' + tag
+    }
+
+    function clearTagField()
+    {
+        document.getElementById("tagField").value = ''
+    }
+</script>
 
 </body>
 </html>
