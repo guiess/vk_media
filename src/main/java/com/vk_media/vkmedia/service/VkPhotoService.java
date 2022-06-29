@@ -68,7 +68,7 @@ public class VkPhotoService {
 
     public List<PhotoWithImage> getPhotosByAlbumId(Integer albumId) throws ClientException, ApiException {
         List<Photo> photos = vkAuthService.getVkApiClient()
-                .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).execute().getItems();
+                .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).extended(true).execute().getItems();
         return photos.stream()
                         .map(photo -> new PhotoWithImage(
                                 ObjectId.get(),
@@ -76,7 +76,29 @@ public class VkPhotoService {
                                 photo.getAlbumId(),
                                 getImageURIFromSizes(photo.getSizes(), 133).toString(),
                                 getImageURIFromSizes(photo.getSizes()).toString(),
-                                null))
+                                photo.getText()))
                         .collect(Collectors.toList());
+    }
+
+    public PhotoWithImage getPhotoById(String photoId, String albumId) throws ClientException, ApiException {
+        List<Photo> photos = vkAuthService.getVkApiClient()
+                .photos().get(vkAuthService.getActor()).albumId(albumId).photoIds(photoId).photoSizes(true).extended(true).execute().getItems();
+        if (photos.isEmpty()) {
+            return null;
+        }
+
+        Photo photo = photos.get(0);
+        return new PhotoWithImage(
+                ObjectId.get(),
+                photo.getId().toString(),
+                photo.getAlbumId(),
+                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                getImageURIFromSizes(photo.getSizes()).toString(),
+                photo.getText());
+    }
+
+    public void savePhotoTags(PhotoWithImage photo) throws ClientException, ApiException {
+        vkAuthService.getVkApiClient()
+                .photos().edit(vkAuthService.getActor(), Integer.parseInt(photo.getVkId())).caption(photo.getTags()).execute();
     }
 }
