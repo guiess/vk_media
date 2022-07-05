@@ -44,7 +44,13 @@ public class MongoPhotoService {
         List<String> tags = new ArrayList<>();
         DistinctIterable<String> iterable = getMongoCollection().distinct("tags", String.class);
         iterable.forEach(tags::add);
-        return tags.stream().map(tag -> Arrays.asList(tag.split(" "))).flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
+        return tags.stream()
+                .map(tag -> Arrays.asList(tag.split(" ")))
+                .flatMap(List::stream)
+                .filter(str -> str != null && !str.isEmpty())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     protected MongoCollection<PhotoWithImage> getMongoCollection() {

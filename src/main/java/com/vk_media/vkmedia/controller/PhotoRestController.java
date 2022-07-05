@@ -41,4 +41,9 @@ public class PhotoRestController {
         }
         return mongoPhotoService.getPhotosByTag(tags);
     }
+
+    @GetMapping("/getExistingTagsRest")
+    public List<String> getExistingTagsRest() {
+        return mongoPhotoService.getExistingTags();
+    }
 }
