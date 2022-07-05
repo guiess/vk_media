@@ -4,10 +4,9 @@ import com.vk_media.vkmedia.dto.PhotoWithImage;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/photos")
@@ -30,9 +29,16 @@ public class PhotoRestController {
         }
         PhotoWithImage photo = vkPhotoService.getPhotoById(photoVkId, albumId);
         photo.setTags(tags);
-        System.out.println("!!! " +  photo.toString());
         mongoPhotoService.addPhotoWithTag(photo);
         vkPhotoService.savePhotoTags(photo);
         return "Success";
+    }
+
+    @GetMapping("/getPhotosByTagRest")
+    public List<PhotoWithImage> getPhotoByTag(String tags) {
+        if (tags == null || tags.isEmpty()) {
+            return null;
+        }
+        return mongoPhotoService.getPhotosByTag(tags);
     }
 }
