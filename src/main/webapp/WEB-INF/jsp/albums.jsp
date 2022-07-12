@@ -28,6 +28,6 @@
     </c:forEach>
     </tbody>
 </table> <br>
-Error: ${Error}<br>
+Error: ${error}<br>
 </body>
 </html>

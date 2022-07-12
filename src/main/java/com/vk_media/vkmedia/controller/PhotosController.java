@@ -45,7 +45,7 @@ public class PhotosController {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                model.addAttribute("Error", e);
+                model.addAttribute("error", e);
             }
         }
         return "findPhotos";
@@ -76,7 +76,7 @@ public class PhotosController {
                 model.addAttribute("result", "photo added");
             } catch (Exception e) {
                 e.printStackTrace();
-                model.addAttribute("Error", e);
+                model.addAttribute("error", e);
             }
         }
         return "addPhoto";
