@@ -3,7 +3,6 @@ package com.vk_media.vkmedia.controller;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
