@@ -9,9 +9,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @ControllerAdvice
 public class ExceptionHandlerController {
 
+    public static String NOT_AUTHORIZED_IN_VK = "You are not authorized in VK. Please authorize first";
+
     @ExceptionHandler({VkUnauthenticatedException.class})
     public ModelAndView vkAuthException(RedirectAttributes attributes) {
-        attributes.addFlashAttribute("error", "You are not authorized in VK. Please authorized first");
+        attributes.addFlashAttribute("error", NOT_AUTHORIZED_IN_VK);
         return new ModelAndView("redirect:/");
     }
 
