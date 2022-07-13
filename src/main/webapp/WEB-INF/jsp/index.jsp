@@ -17,6 +17,10 @@
   <c:if test="${isAuthorized}">
     <a href="/albums">Photos</a> <br>
   </c:if>
-  Error: ${Error}<br>
+  <c:if test="${error != null}">
+    <div style="color:red">
+      Error: ${error}<br>
+    </div>
+  </c:if>
   </body>
 </html>

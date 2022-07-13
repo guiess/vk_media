@@ -22,7 +22,7 @@ public class VkAuthRestController {
         try {
             vkAuthService.initialize(code);
         } catch (Exception e) {
-            System.out.println("!!!!! VkInitRestController.setCode Exception: ");
+            System.out.println("VkInitRestController.setCode Exception: ");
             e.printStackTrace();
         }
         return new ModelAndView("redirect:/");

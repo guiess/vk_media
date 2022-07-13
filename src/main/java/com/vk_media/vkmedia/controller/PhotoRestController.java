@@ -3,7 +3,6 @@ package com.vk_media.vkmedia.controller;
 import com.vk_media.vkmedia.dto.PhotoWithImage;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,14 +22,18 @@ public class PhotoRestController {
     @PostMapping("/addPhotoWithTagRest")
     public String addPhotoTags(String photoVkId,
                                String albumId,
-                               String tags) throws Exception {
+                               String tags) {
         if (photoVkId == null) {
-            throw new Exception("PhotoId must not be empty");
+            return "Fail: PhotoId must not be empty";
         }
-        PhotoWithImage photo = vkPhotoService.getPhotoById(photoVkId, albumId);
-        photo.setTags(tags);
-        mongoPhotoService.addPhotoWithTag(photo);
-        vkPhotoService.savePhotoTags(photo);
+        try {
+            PhotoWithImage photo = vkPhotoService.getPhotoById(photoVkId, albumId);
+            photo.setTags(tags);
+            mongoPhotoService.addPhotoWithTag(photo);
+            vkPhotoService.savePhotoTags(photo);
+        } catch (Exception e) {
+            return "Fail: " + e.getMessage();
+        }
         return "Success";
     }
 

@@ -26,7 +26,7 @@ public class AlbumsController {
             model.addAttribute("albums", vkPhotoService.getPhotoAlbums());
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("Error", e);
+            model.addAttribute("error", e);
         }
         return "albums";
     }
@@ -39,7 +39,7 @@ public class AlbumsController {
             model.addAttribute("tags", mongoPhotoService.getExistingTags());
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("Error", e);
+            model.addAttribute("error", e);
         }
         return "album";
     }
@@ -65,7 +65,7 @@ public class AlbumsController {
             return "album";
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("Error", e);
+            model.addAttribute("error", e);
         }
         return "findAlbum";
     }

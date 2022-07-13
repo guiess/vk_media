@@ -47,8 +47,8 @@
         </tbody>
     </table> <br>
 </c:if>
-<c:if test="${Error != null}">
-    Error: ${Error}<br>
+<c:if test="${error != null}">
+    Error: ${error}<br>
 </c:if>
 
 </body>
