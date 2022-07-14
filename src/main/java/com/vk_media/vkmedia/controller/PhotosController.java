@@ -26,7 +26,7 @@ public class PhotosController {
     }
 
     @PostMapping("/findPhotosByTag")
-    public String showFoundAlbum(
+    public String findPhotosByTag(
             @ModelAttribute("tag") String tag,
             BindingResult result,
             Model model
@@ -53,6 +53,7 @@ public class PhotosController {
 
     @GetMapping("/addPhotoWithTag")
     public String addPhoto(Model model) {
+        model.addAttribute("tags", mongoPhotoService.getExistingTags());
         return "addPhoto";
     }
 
@@ -63,6 +64,7 @@ public class PhotosController {
             BindingResult result,
             Model model
     ) {
+        model.addAttribute("tags", mongoPhotoService.getExistingTags());
         if (imageUrl == null || imageUrl.isEmpty()) {
             model.addAttribute("result", "Image url should be set");
         } else if (tag == null || tag.isEmpty()) {
