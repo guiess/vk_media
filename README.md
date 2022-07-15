@@ -85,15 +85,46 @@ https://vk-media-prod-vk-media-3oqoex.mo2.mogenius.io/photos/findPhotosByTag
 
     [
        {
-           "id": {
-               "timestamp": 1655582281,
-               "date": "2022-06-18T19:58:01.000+00:00"
-           },
+           "id": "62ae2e49340fc2aa4f29461b",
            "vkId": null,
            "albumId": 123123,
            "previewPhotoURI": "https://sun9-32.userapi.com/impf/tvia2JFbcot4B-tQ31KVwQEzNwWMt4VGkWA3sQ/vLJg8Zk1g_E.jpg?size=1200x1105&quality=95&sign=23c9728ebd3eba8aaaf18879ae9e3161&type=album",
            "photoURI": "https://sun9-32.userapi.com/impf/tvia2JFbcot4B-tQ31KVwQEzNwWMt4VGkWA3sQ/vLJg8Zk1g_E.jpg?size=1200x1105&quality=95&sign=23c9728ebd3eba8aaaf18879ae9e3161&type=album",
            "tags": "cat"
+       }
+    ]
+
+### Get Photos by Ids
+
+`GET /photos/getPhotosByIdsRest`
+
+#### Request
+
+    curl --location --request GET 'http://localhost:8080/photos/getPhotosByIdsRest' \
+    --header 'Content-Type: application/json' \
+    --data-raw '[
+       "62ae2e49340fc2aa4f29461b",
+       "62ae4d14d9b4e109cbd76637"
+    ]'
+
+#### Response
+
+    [
+       {
+          "id": "62ae2e49340fc2aa4f29461b",
+          "vkId": null,
+          "albumId": 123123,
+          "previewPhotoURI": "https://sun9-32.userapi.com/impf/tvia2JFbcot4B-tQ31KVwQEzNwWMt4VGkWA3sQ/vLJg8Zk1g_E.jpg?size=1200x1105&quality=95&sign=23c9728ebd3eba8aaaf18879ae9e3161&type=album",
+          "photoURI": "https://sun9-32.userapi.com/impf/tvia2JFbcot4B-tQ31KVwQEzNwWMt4VGkWA3sQ/vLJg8Zk1g_E.jpg?size=1200x1105&quality=95&sign=23c9728ebd3eba8aaaf18879ae9e3161&type=album",
+          "tags": "cat"
+       },
+       {
+          "id": "62ae4d14d9b4e109cbd76637",
+          "vkId": null,
+          "albumId": 0,
+          "previewPhotoURI": null,
+          "photoURI": "https://sun9-86.userapi.com/impf/AfsvcKyk1gnnavNb6hWjwg18eeDDw5dHrfvIiA/c0Vn5XkmYVk.jpg?size=200x200&quality=96&sign=892de7a8a9b9bbebdc38cf38b9e37092&type=album",
+          "tags": "уходи cat"
        }
     ]
 

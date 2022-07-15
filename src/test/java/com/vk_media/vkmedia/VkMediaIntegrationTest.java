@@ -2,7 +2,7 @@ package com.vk_media.vkmedia;
 
 import com.mongodb.client.MongoCollection;
 import com.vk_media.vkmedia.controller.ExceptionHandlerController;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import com.vk_media.vkmedia.exception.VkUnauthenticatedException;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import org.bson.types.ObjectId;
@@ -47,7 +47,7 @@ public class VkMediaIntegrationTest {
     MongoPhotoService mongoPhotoService;
 
     @Autowired
-    MongoCollection<PhotoWithImage> mongoPhotoCollection;
+    MongoCollection<PhotoWithTags> mongoPhotoCollection;
 
     private final static int MONGO_PORT = 27017;
 
@@ -66,14 +66,14 @@ public class VkMediaIntegrationTest {
 
     @BeforeAll
     public void setUp() {
-        PhotoWithImage image1 = new PhotoWithImage(
+        PhotoWithTags image1 = new PhotoWithTags(
                 ObjectId.get(),
                 "1",
                 10,
                 "http://test.com/previewImgUrl1.jpg",
                 "http://test.com/imgUrl1.jpg",
                 "Btag Ztag Mtag Atag");
-        PhotoWithImage image2 = new PhotoWithImage(
+        PhotoWithTags image2 = new PhotoWithTags(
                 ObjectId.get(),
                 "2",
                 10,

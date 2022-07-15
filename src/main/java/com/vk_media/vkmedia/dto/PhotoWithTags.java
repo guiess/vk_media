@@ -1,5 +1,7 @@
 package com.vk_media.vkmedia.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonProperty;
@@ -13,10 +15,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "photos")
-public class PhotoWithImage {
+public class PhotoWithTags {
     @Id
     @BsonId
     @BsonProperty("_id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String vkId;
     private int albumId;
