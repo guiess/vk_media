@@ -5,7 +5,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -32,7 +32,7 @@ public class MongoPhotoServiceTest {
     private final static int MONGO_PORT = 27017;
 
     private MongoClient mongoClient;
-    private MongoCollection<PhotoWithImage> collection;
+    private MongoCollection<PhotoWithTags> collection;
 
     private MongoPhotoService mongoPhotoService;
 
@@ -48,15 +48,15 @@ public class MongoPhotoServiceTest {
                 MongoClientSettings.getDefaultCodecRegistry(),
                 CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
         MongoDatabase database = mongoClient.getDatabase("test").withCodecRegistry(pojoCodecRegistry);
-        collection = database.getCollection("testCollection", PhotoWithImage.class);
-        PhotoWithImage image1 = new PhotoWithImage(
+        collection = database.getCollection("testCollection", PhotoWithTags.class);
+        PhotoWithTags image1 = new PhotoWithTags(
                 ObjectId.get(),
                 "1",
                 10,
                 "http://test.com/previewImgUrl1.jpg",
                 "http://test.com/imgUrl1.jpg",
                 "Btag Ztag Mtag Atag");
-        PhotoWithImage image2 = new PhotoWithImage(
+        PhotoWithTags image2 = new PhotoWithTags(
                 ObjectId.get(),
                 "2",
                 10,
@@ -83,7 +83,7 @@ public class MongoPhotoServiceTest {
 
     @Test
     public void getPhotosByTagTest() {
-        List<PhotoWithImage> result = mongoPhotoService.getPhotosByTag("Atag Mtag");
+        List<PhotoWithTags> result = mongoPhotoService.getPhotosByTag("Atag Mtag");
         assertEquals(result.size(), 2);
 
         result = mongoPhotoService.getPhotosByTag("Qtag Mtag");
@@ -92,13 +92,13 @@ public class MongoPhotoServiceTest {
 
     static class TestableMongoPhotoService extends MongoPhotoService {
 
-        private final MongoCollection<PhotoWithImage> mongoCollection;
+        private final MongoCollection<PhotoWithTags> mongoCollection;
 
-        public TestableMongoPhotoService(MongoCollection<PhotoWithImage> mongoCollection) {
+        public TestableMongoPhotoService(MongoCollection<PhotoWithTags> mongoCollection) {
             this.mongoCollection = mongoCollection;
         }
 
-        protected MongoCollection<PhotoWithImage> getMongoCollection() {
+        protected MongoCollection<PhotoWithTags> getMongoCollection() {
             return mongoCollection;
         }
     }

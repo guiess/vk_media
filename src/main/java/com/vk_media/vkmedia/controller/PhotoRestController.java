@@ -1,6 +1,6 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ public class PhotoRestController {
             return "Fail: PhotoId must not be empty";
         }
         try {
-            PhotoWithImage photo = vkPhotoService.getPhotoById(photoVkId, albumId);
+            PhotoWithTags photo = vkPhotoService.getPhotoById(photoVkId, albumId);
             photo.setTags(tags);
             mongoPhotoService.addPhotoWithTag(photo);
             vkPhotoService.savePhotoTags(photo);
@@ -38,7 +38,7 @@ public class PhotoRestController {
     }
 
     @GetMapping("/getPhotosByTagRest")
-    public List<PhotoWithImage> getPhotoByTag(String tags) {
+    public List<PhotoWithTags> getPhotoByTag(String tags) {
         if (tags == null || tags.isEmpty()) {
             return null;
         }
@@ -48,5 +48,10 @@ public class PhotoRestController {
     @GetMapping("/getExistingTagsRest")
     public List<String> getExistingTagsRest() {
         return mongoPhotoService.getExistingTags();
+    }
+
+    @GetMapping("/getPhotosByIdsRest")
+    public List<PhotoWithTags> getPhotosByIds(@RequestBody List<String> ids) {
+        return mongoPhotoService.getPhotosById(ids);
     }
 }

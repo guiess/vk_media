@@ -6,7 +6,7 @@ import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk_media.vkmedia.dto.Album;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
@@ -66,11 +66,11 @@ public class VkPhotoService {
         return null;
     }
 
-    public List<PhotoWithImage> getPhotosByAlbumId(Integer albumId) throws ClientException, ApiException {
+    public List<PhotoWithTags> getPhotosByAlbumId(Integer albumId) throws ClientException, ApiException {
         List<Photo> photos = vkAuthService.getVkApiClient()
                 .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).extended(true).execute().getItems();
         return photos.stream()
-                        .map(photo -> new PhotoWithImage(
+                        .map(photo -> new PhotoWithTags(
                                 ObjectId.get(),
                                 photo.getId().toString(),
                                 photo.getAlbumId(),
@@ -80,7 +80,7 @@ public class VkPhotoService {
                         .collect(Collectors.toList());
     }
 
-    public PhotoWithImage getPhotoById(String photoId, String albumId) throws ClientException, ApiException {
+    public PhotoWithTags getPhotoById(String photoId, String albumId) throws ClientException, ApiException {
         List<Photo> photos = vkAuthService.getVkApiClient()
                 .photos().get(vkAuthService.getActor()).albumId(albumId).photoIds(photoId).photoSizes(true).extended(true).execute().getItems();
         if (photos.isEmpty()) {
@@ -88,7 +88,7 @@ public class VkPhotoService {
         }
 
         Photo photo = photos.get(0);
-        return new PhotoWithImage(
+        return new PhotoWithTags(
                 ObjectId.get(),
                 photo.getId().toString(),
                 photo.getAlbumId(),
@@ -97,7 +97,7 @@ public class VkPhotoService {
                 photo.getText());
     }
 
-    public void savePhotoTags(PhotoWithImage photo) throws ClientException, ApiException {
+    public void savePhotoTags(PhotoWithTags photo) throws ClientException, ApiException {
         vkAuthService.getVkApiClient()
                 .photos().edit(vkAuthService.getActor(), Integer.parseInt(photo.getVkId())).caption(photo.getTags()).execute();
     }

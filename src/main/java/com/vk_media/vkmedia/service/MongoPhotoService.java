@@ -4,8 +4,9 @@ import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +19,12 @@ import java.util.stream.Collectors;
 public class MongoPhotoService {
 
     @Autowired
-    MongoCollection<PhotoWithImage> mongoPhotoCollection;
+    MongoCollection<PhotoWithTags> mongoPhotoCollection;
 
-    public List<PhotoWithImage> getPhotosByTag(String tag) {
-        List<PhotoWithImage> photos = new ArrayList<>();
+    public List<PhotoWithTags> getPhotosByTag(String tag) {
+        List<PhotoWithTags> photos = new ArrayList<>();
         Bson regex = Filters.regex("tags", convertToRegex(tag));
-        FindIterable<PhotoWithImage> iterable = getMongoCollection().find(regex, PhotoWithImage.class);
+        FindIterable<PhotoWithTags> iterable = getMongoCollection().find(regex, PhotoWithTags.class);
         iterable.forEach(photos::add);
         return photos;
     }
@@ -34,7 +35,7 @@ public class MongoPhotoService {
 
     }
 
-    public void addPhotoWithTag(PhotoWithImage photo) {
+    public void addPhotoWithTag(PhotoWithTags photo) {
         if (photo != null && photo.getTags() != null && !photo.getTags().isEmpty()) {
             getMongoCollection().insertOne(photo);
         }
@@ -42,8 +43,7 @@ public class MongoPhotoService {
 
     public List<String> getExistingTags() {
         List<String> tags = new ArrayList<>();
-        DistinctIterable<String> iterable = getMongoCollection().distinct("tags", String.class);
-        iterable.forEach(tags::add);
+        getMongoCollection().distinct("tags", String.class).forEach(tags::add);
         return tags.stream()
                 .map(tag -> Arrays.asList(tag.split(" ")))
                 .flatMap(List::stream)
@@ -53,7 +53,15 @@ public class MongoPhotoService {
                 .collect(Collectors.toList());
     }
 
-    protected MongoCollection<PhotoWithImage> getMongoCollection() {
+    public List<PhotoWithTags> getPhotosById(List<String> ids) {
+        List<PhotoWithTags> result = new ArrayList<>();
+        getMongoCollection()
+                .find(Filters.in("_id", ids.stream().map(ObjectId::new).collect(Collectors.toList())))
+                .forEach(result::add);
+        return result;
+    }
+
+    protected MongoCollection<PhotoWithTags> getMongoCollection() {
         return mongoPhotoCollection;
     }
 }

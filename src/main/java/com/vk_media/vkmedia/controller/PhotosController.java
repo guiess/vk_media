@@ -1,6 +1,6 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,7 +37,7 @@ public class PhotosController {
         } else {
             model.addAttribute("tag", tag);
             try {
-                List<PhotoWithImage> photos = mongoPhotoService.getPhotosByTag(tag.toLowerCase());
+                List<PhotoWithTags> photos = mongoPhotoService.getPhotosByTag(tag.toLowerCase());
                 if (!photos.isEmpty()) {
                     model.addAttribute("photos", photos);
                 } else {
@@ -71,7 +71,7 @@ public class PhotosController {
             model.addAttribute("result", "tag should be set");
         } else {
             try {
-                PhotoWithImage newPhoto = new PhotoWithImage();
+                PhotoWithTags newPhoto = new PhotoWithTags();
                 newPhoto.setTags(tag.toLowerCase());
                 newPhoto.setPhotoURI(imageUrl);
                 mongoPhotoService.addPhotoWithTag(newPhoto);
