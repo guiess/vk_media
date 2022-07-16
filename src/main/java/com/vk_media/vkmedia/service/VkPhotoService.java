@@ -14,13 +14,17 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 @Service
 public class VkPhotoService {
 
     VkAuthService vkAuthService;
+    MongoPhotoService mongoPhotoService;
 
-    public VkPhotoService(VkAuthService vkAuthService) {
+    public VkPhotoService(VkAuthService vkAuthService, MongoPhotoService mongoPhotoService) {
         this.vkAuthService = vkAuthService;
+        this.mongoPhotoService = mongoPhotoService;
     }
 
     public List<Album> getPhotoAlbums() {
@@ -69,15 +73,38 @@ public class VkPhotoService {
     public List<PhotoWithTags> getPhotosByAlbumId(Integer albumId) throws ClientException, ApiException {
         List<Photo> photos = vkAuthService.getVkApiClient()
                 .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).extended(true).execute().getItems();
+
+        List<String> vkIds = photos.stream().map(photo -> photo.getId().toString()).collect(Collectors.toList());
+        Map<String, PhotoWithTags> existingPhotos = mongoPhotoService.getPhotosByVkIds(vkIds, albumId).stream()
+                .collect(Collectors.toMap(PhotoWithTags::getVkId, photo -> photo));
         return photos.stream()
-                        .map(photo -> new PhotoWithTags(
-                                ObjectId.get(),
-                                photo.getId().toString(),
-                                photo.getAlbumId(),
-                                getImageURIFromSizes(photo.getSizes(), 133).toString(),
-                                getImageURIFromSizes(photo.getSizes()).toString(),
-                                photo.getText()))
-                        .collect(Collectors.toList());
+                .map(photo -> getPhotoWithTags(photo, albumId, existingPhotos.get(photo.getId().toString())))
+                .collect(Collectors.toList());
+    }
+
+    private PhotoWithTags getPhotoWithTags(Photo photo, Integer albumId, PhotoWithTags existingPhoto) {
+        if (existingPhoto != null) {
+            if (StringUtils.isNotEmpty(photo.getText()) &&
+                    !existingPhoto.getTags().equals(photo.getText())) {
+                existingPhoto.mergeTags(photo.getText());
+                mongoPhotoService.updateTags(existingPhoto);
+                try {
+                    savePhotoTags(existingPhoto);
+                } catch (ClientException | ApiException e) {
+                    e.printStackTrace();
+                }
+            }
+            return existingPhoto;
+        }
+        PhotoWithTags newPhoto = new PhotoWithTags(
+                ObjectId.get(),
+                photo.getId().toString(),
+                albumId,
+                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                getImageURIFromSizes(photo.getSizes()).toString(),
+                photo.getText());
+        mongoPhotoService.putPhotoWithTags(newPhoto);
+        return newPhoto;
     }
 
     public PhotoWithTags getPhotoById(String photoId, String albumId) throws ClientException, ApiException {
