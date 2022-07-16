@@ -29,7 +29,7 @@ public class PhotoRestController {
         try {
             PhotoWithTags photo = vkPhotoService.getPhotoById(photoVkId, albumId);
             photo.setTags(tags);
-            mongoPhotoService.addPhotoWithTag(photo);
+            mongoPhotoService.putPhotoWithTags(photo);
             vkPhotoService.savePhotoTags(photo);
         } catch (Exception e) {
             return "Fail: " + e.getMessage();

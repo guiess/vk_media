@@ -16,6 +16,10 @@
 </head>
 <body >
 
+<br>
+<a href="/albums">Back to albums</a>
+<br>
+<br>
 ${album.title}<br>
 <img  title="title" alt="alt" src="${album.coverURI}" height="100">
 <br>

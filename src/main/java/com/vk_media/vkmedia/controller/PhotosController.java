@@ -74,7 +74,7 @@ public class PhotosController {
                 PhotoWithTags newPhoto = new PhotoWithTags();
                 newPhoto.setTags(tag.toLowerCase());
                 newPhoto.setPhotoURI(imageUrl);
-                mongoPhotoService.addPhotoWithTag(newPhoto);
+                mongoPhotoService.putPhotoWithTags(newPhoto);
                 model.addAttribute("result", "photo added");
             } catch (Exception e) {
                 e.printStackTrace();

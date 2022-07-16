@@ -80,8 +80,8 @@ public class VkMediaIntegrationTest {
                 "http://test.com/previewImgUrl2.jpg",
                 "http://test.com/imgUrl2.jpg",
                 "Qtag Atag Mtag");
-        mongoPhotoService.addPhotoWithTag(image1);
-        mongoPhotoService.addPhotoWithTag(image2);
+        mongoPhotoService.putPhotoWithTags(image1);
+        mongoPhotoService.putPhotoWithTags(image2);
     }
 
     @Test

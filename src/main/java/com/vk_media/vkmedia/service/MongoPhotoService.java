@@ -1,13 +1,13 @@
 package com.vk_media.vkmedia.service;
 
-import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import com.vk_media.vkmedia.dto.PhotoWithTags;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,8 +18,11 @@ import java.util.stream.Collectors;
 @Service
 public class MongoPhotoService {
 
-    @Autowired
     MongoCollection<PhotoWithTags> mongoPhotoCollection;
+
+    public MongoPhotoService(MongoCollection<PhotoWithTags> mongoPhotoCollection) {
+        this.mongoPhotoCollection = mongoPhotoCollection;
+    }
 
     public List<PhotoWithTags> getPhotosByTag(String tag) {
         List<PhotoWithTags> photos = new ArrayList<>();
@@ -32,12 +35,15 @@ public class MongoPhotoService {
     private String convertToRegex(String tags) {
         return "^" +
                 Arrays.stream(tags.split(" ")).map(tag -> "(?=.*?" + tag + ")").collect(Collectors.joining());
-
     }
 
-    public void addPhotoWithTag(PhotoWithTags photo) {
-        if (photo != null && photo.getTags() != null && !photo.getTags().isEmpty()) {
-            getMongoCollection().insertOne(photo);
+    public void putPhotoWithTags(PhotoWithTags photo) {
+        if (photo != null &&
+                StringUtils.isNotEmpty(photo.getTags())) {
+            boolean isUpdated = updateTags(photo);
+            if (!isUpdated) {
+                getMongoCollection().insertOne(photo);
+            }
         }
     }
 
@@ -59,6 +65,26 @@ public class MongoPhotoService {
                 .find(Filters.in("_id", ids.stream().map(ObjectId::new).collect(Collectors.toList())))
                 .forEach(result::add);
         return result;
+    }
+
+    public List<PhotoWithTags> getPhotosByVkIds(List<String> vkIds, Integer albumId) {
+        List<PhotoWithTags> result = new ArrayList<>();
+        getMongoCollection()
+                .find(Filters.and(Filters.in("vkId", vkIds), Filters.eq("albumId", albumId)))
+                .forEach(result::add);
+        return result;
+    }
+
+    public boolean updateTags(PhotoWithTags photo) {
+        return getMongoCollection()
+                .updateOne(
+                        Filters.or(
+                                Filters.eq("_id", photo.getId()),
+                                Filters.eq("vkId", photo.getVkId()),
+                                Filters.eq("photoURI", photo.getPhotoURI())
+                        ),
+                        Updates.set("tags", photo.getTags()))
+                .getModifiedCount() > 0;
     }
 
     protected MongoCollection<PhotoWithTags> getMongoCollection() {
