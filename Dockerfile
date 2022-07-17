@@ -6,6 +6,6 @@ RUN cd /home/gradle
 RUN gradle build -x test
 
 FROM openjdk:18.0.1.1-jdk-slim-buster
-COPY --from=builder /home/gradle/build/libs/vk-media-0.0.1-SNAPSHOT.war vk_media.war
+COPY --from=builder /home/gradle/build/libs/vk-media-1.0.0-SNAPSHOT.war vk_media.war
 
 ENTRYPOINT ["java", "-jar", "/vk_media.war"]

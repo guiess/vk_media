@@ -12,22 +12,22 @@
     <title>VK Albums</title>
 </head>
 <body>
+Albums
 <table>
-    <thead>
-    <tr>
-        <th>name</th>
-        <th>cover url</th>
-    </tr>
-    </thead>
     <tbody>
-    <c:forEach items="${albums}" var="album">
-        <tr>
-            <td>${album.title}</td>
-            <td><a href="/albums/${album.id}"><img  title="title" alt="alt" src="${album.coverURI}" height="100"></a></td>
-        </tr>
-    </c:forEach>
+    <tr style="vertical-align: top">
+        <c:forEach items="${albums}" var="album" varStatus="i">
+            <td>
+                <a href="/albums/${album.id}"><img  title="title" alt="alt" src="${album.coverURI}" height="100"></a> <br>
+                ${album.title}
+            </td>
+            <c:if test="${i.count % 5 == 0}">
+                </tr><tr style="vertical-align: top">
+            </c:if>
+        </c:forEach>
+    </tr>
     </tbody>
 </table> <br>
-Error: ${Error}<br>
+Error: ${error}<br>
 </body>
 </html>

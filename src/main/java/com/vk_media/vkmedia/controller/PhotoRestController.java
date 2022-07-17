@@ -1,9 +1,8 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,19 +22,23 @@ public class PhotoRestController {
     @PostMapping("/addPhotoWithTagRest")
     public String addPhotoTags(String photoVkId,
                                String albumId,
-                               String tags) throws Exception {
+                               String tags) {
         if (photoVkId == null) {
-            throw new Exception("PhotoId must not be empty");
+            return "Fail: PhotoId must not be empty";
         }
-        PhotoWithImage photo = vkPhotoService.getPhotoById(photoVkId, albumId);
-        photo.setTags(tags);
-        mongoPhotoService.addPhotoWithTag(photo);
-        vkPhotoService.savePhotoTags(photo);
+        try {
+            PhotoWithTags photo = vkPhotoService.getPhotoById(photoVkId, albumId);
+            photo.setTags(tags);
+            mongoPhotoService.putPhotoWithTags(photo);
+            vkPhotoService.savePhotoTags(photo);
+        } catch (Exception e) {
+            return "Fail: " + e.getMessage();
+        }
         return "Success";
     }
 
     @GetMapping("/getPhotosByTagRest")
-    public List<PhotoWithImage> getPhotoByTag(String tags) {
+    public List<PhotoWithTags> getPhotoByTag(String tags) {
         if (tags == null || tags.isEmpty()) {
             return null;
         }
@@ -45,5 +48,10 @@ public class PhotoRestController {
     @GetMapping("/getExistingTagsRest")
     public List<String> getExistingTagsRest() {
         return mongoPhotoService.getExistingTags();
+    }
+
+    @GetMapping("/getPhotosByIdsRest")
+    public List<PhotoWithTags> getPhotosByIds(@RequestBody List<String> ids) {
+        return mongoPhotoService.getPhotosById(ids);
     }
 }

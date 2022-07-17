@@ -44,7 +44,7 @@ public class VkAuthService {
     }
 
     public boolean isAuthorized() {
-        return code != null;
+        return actor != null;
     }
 
     public String getAuthUrl() {
@@ -52,11 +52,11 @@ public class VkAuthService {
     }
 
     public void initialize(String code) throws ApiException, ClientException {
-        this.code = code;
-
-        if (!isAuthorized()) {
+        if (code == null || code.isEmpty()) {
             return;
         }
+
+        this.code = code;
         UserAuthResponse authResponse = vkApiClient.oAuth()
                 .userAuthorizationCodeFlow(
                         vkAppId,

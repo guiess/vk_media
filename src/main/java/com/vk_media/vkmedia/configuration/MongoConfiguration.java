@@ -2,7 +2,7 @@ package com.vk_media.vkmedia.configuration;
 
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoCollection;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -21,9 +21,9 @@ public class MongoConfiguration {
     }
 
     @Bean
-    MongoCollection<PhotoWithImage> mongoPhotoCollection(MongoTemplate mongoTemplate, CodecRegistry pojoCodecRegistry) {
+    MongoCollection<PhotoWithTags> mongoPhotoCollection(MongoTemplate mongoTemplate, CodecRegistry pojoCodecRegistry) {
         return mongoTemplate.getCollection("photos")
-                .withDocumentClass(PhotoWithImage.class)
+                .withDocumentClass(PhotoWithTags.class)
                 .withCodecRegistry(pojoCodecRegistry);
     }
 }

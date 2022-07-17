@@ -16,6 +16,10 @@
 </head>
 <body >
 
+<br>
+<a href="/albums">Back to albums</a>
+<br>
+<br>
 ${album.title}<br>
 <img  title="title" alt="alt" src="${album.coverURI}" height="100">
 <br>
@@ -28,10 +32,20 @@ ${album.title}<br>
                 <table>
                     <tbody>
                     <tr style="vertical-align: top">
+                        <td>
+                            <c:if test="${page > 1}">
+                                <a href="/albums/${album.id}?page=${page - 1}">Previous</a>
+                            </c:if>
+                            <c:if test="${page < album.pages}">
+                                <a href="/albums/${album.id}?page=${page + 1}">Next</a>
+                            </c:if>
+
+                        </td>
+                    </tr>
+                    <tr style="vertical-align: top">
                         <c:forEach items="${photos}" var="photo" varStatus="i">
                         <td>
-                            <%-- onclick='javascript:window.open("${photos[i.index].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");'--%>
-                            <img id="${photos[i.index].vkId}" albumId="${photos[i.index].albumId}" onclick="javascript:onImageClick(${photos[i.index].vkId}, '${photos[i.index].photoURI}')" src="${photos[i.index].previewPhotoURI != null? photos[i.index].previewPhotoURI: photos[i.index].photoURI}" height="100" alt="">
+                            <img id="${photos[i.index].vkId}" albumId="${photos[i.index].albumId}" onclick="javascript:onImageClick(${photos[i.index].vkId}, '${photos[i.index].photoURI}', '${photos[i.index].tags}')" src="${photos[i.index].previewPhotoURI != null? photos[i.index].previewPhotoURI: photos[i.index].photoURI}" height="100" alt="">
                             <br>
                                 <u id="tags-${photos[i.index].vkId}">${photos[i.index].tags}</u>
                         </td>
@@ -69,6 +83,8 @@ ${album.title}<br>
                             </c:if>
                         </c:forEach>
                     </c:if>
+                    <div hidden id="savingError" style="color:red">
+                    </div>
                 </div>
             </td>
 
@@ -79,8 +95,8 @@ ${album.title}<br>
 
  <br>
 
-<c:if test="${Error != null}">
-    Error: ${Error}<br>
+<c:if test="${error != null}">
+    Error: ${error}<br>
 </c:if>
 
 <script type="text/javascript">
@@ -106,7 +122,7 @@ ${album.title}<br>
             }
         }
     }
-    function onImageClick(id, url) {
+    function onImageClick(id, url, tags) {
         editDiv = document.getElementById("editTagsDiv");
         if (!editDiv.hidden) {
             selectedImage = document.getElementsByName("selected-image")
@@ -117,6 +133,7 @@ ${album.title}<br>
             newImage = document.getElementById(id);
             newImage.style.border = "10px solid blue";
             newImage.setAttribute("name", "selected-image")
+            document.getElementById("tagField").value = tags
         } else {
             window.open(url, "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");
         }
@@ -139,7 +156,19 @@ ${album.title}<br>
                 },
                 dataType : 'json',
                 complete : function(data) {
-                    document.getElementById("tags-"+photoVkId).innerText = tag
+                    savingErrorField = document.getElementById("savingError")
+                    if (data.responseText !== 'Success') {
+                        if (savingErrorField.hidden) {
+                            savingErrorField.hidden = false
+                        }
+                        savingErrorField.innerText = 'Error on saving tags: ' + data.responseText
+                    } else {
+                        if (!savingErrorField.hidden) {
+                            savingErrorField.hidden = true
+                            savingErrorField.innerText = ''
+                        }
+                        document.getElementById("tags-" + photoVkId).innerText = tag
+                    }
                 }
             });
         }

@@ -1,12 +1,13 @@
 package com.vk_media.vkmedia.service;
 
-import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.mongodb.client.model.Updates;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,13 +18,16 @@ import java.util.stream.Collectors;
 @Service
 public class MongoPhotoService {
 
-    @Autowired
-    MongoCollection<PhotoWithImage> mongoPhotoCollection;
+    MongoCollection<PhotoWithTags> mongoPhotoCollection;
 
-    public List<PhotoWithImage> getPhotosByTag(String tag) {
-        List<PhotoWithImage> photos = new ArrayList<>();
+    public MongoPhotoService(MongoCollection<PhotoWithTags> mongoPhotoCollection) {
+        this.mongoPhotoCollection = mongoPhotoCollection;
+    }
+
+    public List<PhotoWithTags> getPhotosByTag(String tag) {
+        List<PhotoWithTags> photos = new ArrayList<>();
         Bson regex = Filters.regex("tags", convertToRegex(tag));
-        FindIterable<PhotoWithImage> iterable = getMongoCollection().find(regex, PhotoWithImage.class);
+        FindIterable<PhotoWithTags> iterable = getMongoCollection().find(regex, PhotoWithTags.class);
         iterable.forEach(photos::add);
         return photos;
     }
@@ -31,19 +35,21 @@ public class MongoPhotoService {
     private String convertToRegex(String tags) {
         return "^" +
                 Arrays.stream(tags.split(" ")).map(tag -> "(?=.*?" + tag + ")").collect(Collectors.joining());
-
     }
 
-    public void addPhotoWithTag(PhotoWithImage photo) {
-        if (photo != null && photo.getTags() != null && !photo.getTags().isEmpty()) {
-            getMongoCollection().insertOne(photo);
+    public void putPhotoWithTags(PhotoWithTags photo) {
+        if (photo != null &&
+                StringUtils.isNotEmpty(photo.getTags())) {
+            boolean isUpdated = updateTags(photo);
+            if (!isUpdated) {
+                getMongoCollection().insertOne(photo);
+            }
         }
     }
 
     public List<String> getExistingTags() {
         List<String> tags = new ArrayList<>();
-        DistinctIterable<String> iterable = getMongoCollection().distinct("tags", String.class);
-        iterable.forEach(tags::add);
+        getMongoCollection().distinct("tags", String.class).forEach(tags::add);
         return tags.stream()
                 .map(tag -> Arrays.asList(tag.split(" ")))
                 .flatMap(List::stream)
@@ -53,7 +59,35 @@ public class MongoPhotoService {
                 .collect(Collectors.toList());
     }
 
-    protected MongoCollection<PhotoWithImage> getMongoCollection() {
+    public List<PhotoWithTags> getPhotosById(List<String> ids) {
+        List<PhotoWithTags> result = new ArrayList<>();
+        getMongoCollection()
+                .find(Filters.in("_id", ids.stream().map(ObjectId::new).collect(Collectors.toList())))
+                .forEach(result::add);
+        return result;
+    }
+
+    public List<PhotoWithTags> getPhotosByVkIds(List<String> vkIds, Integer albumId) {
+        List<PhotoWithTags> result = new ArrayList<>();
+        getMongoCollection()
+                .find(Filters.and(Filters.in("vkId", vkIds), Filters.eq("albumId", albumId)))
+                .forEach(result::add);
+        return result;
+    }
+
+    public boolean updateTags(PhotoWithTags photo) {
+        return getMongoCollection()
+                .updateOne(
+                        Filters.or(
+                                Filters.eq("_id", photo.getId()),
+                                Filters.eq("vkId", photo.getVkId()),
+                                Filters.eq("photoURI", photo.getPhotoURI())
+                        ),
+                        Updates.set("tags", photo.getTags()))
+                .getModifiedCount() > 0;
+    }
+
+    protected MongoCollection<PhotoWithTags> getMongoCollection() {
         return mongoPhotoCollection;
     }
 }

@@ -1,6 +1,6 @@
 package com.vk_media.vkmedia.controller;
 
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import com.vk_media.vkmedia.service.MongoPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,7 +26,7 @@ public class PhotosController {
     }
 
     @PostMapping("/findPhotosByTag")
-    public String showFoundAlbum(
+    public String findPhotosByTag(
             @ModelAttribute("tag") String tag,
             BindingResult result,
             Model model
@@ -37,7 +37,7 @@ public class PhotosController {
         } else {
             model.addAttribute("tag", tag);
             try {
-                List<PhotoWithImage> photos = mongoPhotoService.getPhotosByTag(tag.toLowerCase());
+                List<PhotoWithTags> photos = mongoPhotoService.getPhotosByTag(tag.toLowerCase());
                 if (!photos.isEmpty()) {
                     model.addAttribute("photos", photos);
                 } else {
@@ -45,7 +45,7 @@ public class PhotosController {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                model.addAttribute("Error", e);
+                model.addAttribute("error", e);
             }
         }
         return "findPhotos";
@@ -53,6 +53,7 @@ public class PhotosController {
 
     @GetMapping("/addPhotoWithTag")
     public String addPhoto(Model model) {
+        model.addAttribute("tags", mongoPhotoService.getExistingTags());
         return "addPhoto";
     }
 
@@ -63,20 +64,21 @@ public class PhotosController {
             BindingResult result,
             Model model
     ) {
+        model.addAttribute("tags", mongoPhotoService.getExistingTags());
         if (imageUrl == null || imageUrl.isEmpty()) {
             model.addAttribute("result", "Image url should be set");
         } else if (tag == null || tag.isEmpty()) {
             model.addAttribute("result", "tag should be set");
         } else {
             try {
-                PhotoWithImage newPhoto = new PhotoWithImage();
+                PhotoWithTags newPhoto = new PhotoWithTags();
                 newPhoto.setTags(tag.toLowerCase());
                 newPhoto.setPhotoURI(imageUrl);
-                mongoPhotoService.addPhotoWithTag(newPhoto);
+                mongoPhotoService.putPhotoWithTags(newPhoto);
                 model.addAttribute("result", "photo added");
             } catch (Exception e) {
                 e.printStackTrace();
-                model.addAttribute("Error", e);
+                model.addAttribute("error", e);
             }
         }
         return "addPhoto";

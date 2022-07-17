@@ -5,7 +5,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.vk_media.vkmedia.dto.PhotoWithImage;
+import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -20,6 +20,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,7 @@ public class MongoPhotoServiceTest {
     private final static int MONGO_PORT = 27017;
 
     private MongoClient mongoClient;
-    private MongoCollection<PhotoWithImage> collection;
+    private MongoCollection<PhotoWithTags> collection;
 
     private MongoPhotoService mongoPhotoService;
 
@@ -48,25 +49,24 @@ public class MongoPhotoServiceTest {
                 MongoClientSettings.getDefaultCodecRegistry(),
                 CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
         MongoDatabase database = mongoClient.getDatabase("test").withCodecRegistry(pojoCodecRegistry);
-        collection = database.getCollection("testCollection", PhotoWithImage.class);
-        PhotoWithImage image1 = new PhotoWithImage(
-                ObjectId.get(),
+        collection = database.getCollection("testCollection", PhotoWithTags.class);
+        PhotoWithTags image1 = new PhotoWithTags(
+                new ObjectId("62d2216ab58f812918b757a2"),
                 "1",
                 10,
                 "http://test.com/previewImgUrl1.jpg",
                 "http://test.com/imgUrl1.jpg",
                 "Btag Ztag Mtag Atag");
-        PhotoWithImage image2 = new PhotoWithImage(
-                ObjectId.get(),
+        PhotoWithTags image2 = new PhotoWithTags(
+                new ObjectId("62d2216ab58f812918b757a4"),
                 "2",
                 10,
                 "http://test.com/previewImgUrl2.jpg",
                 "http://test.com/imgUrl2.jpg",
                 "Qtag Atag Mtag");
-        collection.insertOne(image1);
-        collection.insertOne(image2);
-
-        mongoPhotoService = new TestableMongoPhotoService(collection);
+        mongoPhotoService = new MongoPhotoService(collection);
+        mongoPhotoService.putPhotoWithTags(image1);
+        mongoPhotoService.putPhotoWithTags(image2);
     }
 
     @AfterEach
@@ -76,30 +76,76 @@ public class MongoPhotoServiceTest {
     }
 
     @Test
-    public void getExistingTags() {
+    public void givenExistingRecord_whenGetExistingTags_thenReturnListOfExistingTags() {
         String existingTags = String.join(";", mongoPhotoService.getExistingTags());
         assertEquals("Atag;Btag;Mtag;Qtag;Ztag", existingTags, "Error on getExistingTags");
     }
 
     @Test
-    public void getPhotosByTagTest() {
-        List<PhotoWithImage> result = mongoPhotoService.getPhotosByTag("Atag Mtag");
+    public void givenExistingRecord_whenGetPhotosByTag_thenReturnPhotos() {
+        List<PhotoWithTags> result = mongoPhotoService.getPhotosByTag("Atag Mtag");
         assertEquals(result.size(), 2);
 
         result = mongoPhotoService.getPhotosByTag("Qtag Mtag");
         assertEquals(result.size(), 1);
     }
 
-    static class TestableMongoPhotoService extends MongoPhotoService {
+    @Test
+    public void givenExistingRecord_whenPutExistingPhotoWithNewTags_thenUpdateTags() {
+        PhotoWithTags photoWithSameId = new PhotoWithTags(
+                new ObjectId("62d2216ab58f812918b757a2"),
+                "0",
+                0,
+                "",
+                "",
+                "sameIdTag");
+        mongoPhotoService.putPhotoWithTags(photoWithSameId);
+        List<PhotoWithTags> result = mongoPhotoService.getPhotosByTag("sameIdTag");
+        String existingTags = String.join(";", mongoPhotoService.getExistingTags());
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getId().toString(), "62d2216ab58f812918b757a2");
+        assertEquals("Atag;Mtag;Qtag;sameIdTag", existingTags);
 
-        private final MongoCollection<PhotoWithImage> mongoCollection;
+        PhotoWithTags photoWithSameVkId = new PhotoWithTags(
+                ObjectId.get(),
+                "1",
+                0,
+                "",
+                "",
+                "sameVkIdTag");
+        mongoPhotoService.putPhotoWithTags(photoWithSameVkId);
+        result = mongoPhotoService.getPhotosByTag("sameVkIdTag");
+        existingTags = String.join(";", mongoPhotoService.getExistingTags());
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getVkId(), "1");
+        assertEquals("Atag;Mtag;Qtag;sameVkIdTag", existingTags);
 
-        public TestableMongoPhotoService(MongoCollection<PhotoWithImage> mongoCollection) {
-            this.mongoCollection = mongoCollection;
-        }
+        PhotoWithTags photoWithSameUrl = new PhotoWithTags(
+                ObjectId.get(),
+                "0",
+                0,
+                "",
+                "http://test.com/imgUrl1.jpg",
+                "sameUrlTag");
+        mongoPhotoService.putPhotoWithTags(photoWithSameUrl);
+        result = mongoPhotoService.getPhotosByTag("sameUrlTag");
+        existingTags = String.join(";", mongoPhotoService.getExistingTags());
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getPhotoURI(), "http://test.com/imgUrl1.jpg");
+        assertEquals("Atag;Mtag;Qtag;sameUrlTag", existingTags);
+    }
 
-        protected MongoCollection<PhotoWithImage> getMongoCollection() {
-            return mongoCollection;
-        }
+    @Test
+    public void givenExistingRecord_whenGetPhotosByIds_thenReturnPhotos() {
+        List<PhotoWithTags> result = mongoPhotoService.getPhotosById(Collections.singletonList("62d2216ab58f812918b757a2"));
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getTags(), "Btag Ztag Mtag Atag");
+    }
+
+    @Test
+    public void givenExistingRecord_whenGetPhotosByVkIds_thenReturnPhotos() {
+        List<PhotoWithTags> result = mongoPhotoService.getPhotosByVkIds(Collections.singletonList("1"), 10);
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getTags(), "Btag Ztag Mtag Atag");
     }
 }
