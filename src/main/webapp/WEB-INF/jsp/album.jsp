@@ -32,9 +32,19 @@ ${album.title}<br>
                 <table>
                     <tbody>
                     <tr style="vertical-align: top">
+                        <td>
+                            <c:if test="${page > 1}">
+                                <a href="/albums/${album.id}?page=${page - 1}">Previous</a>
+                            </c:if>
+                            <c:if test="${page < album.pages}">
+                                <a href="/albums/${album.id}?page=${page + 1}">Next</a>
+                            </c:if>
+
+                        </td>
+                    </tr>
+                    <tr style="vertical-align: top">
                         <c:forEach items="${photos}" var="photo" varStatus="i">
                         <td>
-                            <%-- onclick='javascript:window.open("${photos[i.index].photoURI}", "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");'--%>
                             <img id="${photos[i.index].vkId}" albumId="${photos[i.index].albumId}" onclick="javascript:onImageClick(${photos[i.index].vkId}, '${photos[i.index].photoURI}', '${photos[i.index].tags}')" src="${photos[i.index].previewPhotoURI != null? photos[i.index].previewPhotoURI: photos[i.index].photoURI}" height="100" alt="">
                             <br>
                                 <u id="tags-${photos[i.index].vkId}">${photos[i.index].tags}</u>

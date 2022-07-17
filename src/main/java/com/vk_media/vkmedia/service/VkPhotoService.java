@@ -10,6 +10,7 @@ import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import java.lang.Math;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 
 @Service
 public class VkPhotoService {
+
+    public final int PHOTO_BATCH_SIZE = 50;
 
     VkAuthService vkAuthService;
     MongoPhotoService mongoPhotoService;
@@ -33,7 +36,8 @@ public class VkPhotoService {
                 List<PhotoAlbumFull> photoAlbumFulls = vkAuthService.getVkApiClient()
                         .photos().getAlbums(vkAuthService.getActor()).needCovers(true).execute().getItems();
                 return photoAlbumFulls.stream()
-                        .map(album -> new Album(album.getId(), album.getTitle(), album.getThumbSrc()))
+                        .map(album -> new Album(album.getId(), album.getTitle(), album.getThumbSrc(),
+                                getPagesAmount(album.getSize())))
                         .collect(Collectors.toList());
             } catch (Exception e) {
                 System.out.println("!!!!! getPhotoAlbums Exception: ");
@@ -65,14 +69,21 @@ public class VkPhotoService {
                 .photos().getAlbums(vkAuthService.getActor()).albumIds(albumId).needCovers(true).execute().getItems();
         if (photoAlbumFulls != null && !photoAlbumFulls.isEmpty()) {
             PhotoAlbumFull photoAlbumFull = photoAlbumFulls.get(0);
-            return new Album(photoAlbumFull.getId(), photoAlbumFull.getTitle(), photoAlbumFull.getThumbSrc());
+            return new Album(photoAlbumFull.getId(), photoAlbumFull.getTitle(),
+                    photoAlbumFull.getThumbSrc(), getPagesAmount(photoAlbumFull.getSize()));
         }
         return null;
     }
 
-    public List<PhotoWithTags> getPhotosByAlbumId(Integer albumId) throws ClientException, ApiException {
+    public List<PhotoWithTags> getPhotosByAlbumId(Integer albumId, int page) throws ClientException, ApiException {
         List<Photo> photos = vkAuthService.getVkApiClient()
-                .photos().get(vkAuthService.getActor()).albumId(albumId.toString()).extended(true).execute().getItems();
+                .photos()
+                .get(vkAuthService.getActor())
+                .albumId(albumId.toString())
+                .offset(PHOTO_BATCH_SIZE * (page - 1))
+                .extended(true)
+                .execute()
+                .getItems();
 
         List<String> vkIds = photos.stream().map(photo -> photo.getId().toString()).collect(Collectors.toList());
         Map<String, PhotoWithTags> existingPhotos = mongoPhotoService.getPhotosByVkIds(vkIds, albumId).stream()
@@ -127,5 +138,9 @@ public class VkPhotoService {
     public void savePhotoTags(PhotoWithTags photo) throws ClientException, ApiException {
         vkAuthService.getVkApiClient()
                 .photos().edit(vkAuthService.getActor(), Integer.parseInt(photo.getVkId())).caption(photo.getTags()).execute();
+    }
+
+    private int getPagesAmount(int photosAmount) {
+        return (photosAmount + PHOTO_BATCH_SIZE -1) / PHOTO_BATCH_SIZE;
     }
 }

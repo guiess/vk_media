@@ -13,4 +13,5 @@ public class Album {
     private Integer id;
     private String title;
     private URI coverURI;
+    private int pages;
 }
