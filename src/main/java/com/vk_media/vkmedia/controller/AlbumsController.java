@@ -5,7 +5,6 @@ import com.vk_media.vkmedia.service.MongoPhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -32,11 +31,12 @@ public class AlbumsController {
     }
 
     @GetMapping("/{id}")
-    public String viewAlbum(@PathVariable int id, Model model) {
+    public String viewAlbum(@PathVariable int id, @RequestParam(defaultValue="1") Integer page, Model model) {
         try {
             model.addAttribute("album", vkPhotoService.getAlbumById(id));
-            model.addAttribute("photos", vkPhotoService.getPhotosByAlbumId(id));
+            model.addAttribute("photos", vkPhotoService.getPhotosByAlbumId(id, page));
             model.addAttribute("tags", mongoPhotoService.getExistingTags());
+            model.addAttribute("page", page);
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("error", e);
@@ -50,23 +50,22 @@ public class AlbumsController {
     }
 
     @PostMapping("/find")
-    public String showFoundAlbum(@ModelAttribute("id") Integer id, BindingResult result, Model model) {
-        if (id == 0) {
-            model.addAttribute("result", "Not found");
-        }
-        try {
+    public String showFoundAlbum(@ModelAttribute("id") Integer id, Model model) {
+        if (id != 0) {
+            try {
             Album album = vkPhotoService.getAlbumById(id);
             if (album != null) {
                 model.addAttribute("album", vkPhotoService.getAlbumById(id));
-                model.addAttribute("photos", vkPhotoService.getPhotosByAlbumId(id));
+                return "redirect:/albums/" + id;
             } else {
                 model.addAttribute("result", "Not found");
             }
-            return "album";
-        } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("error", e);
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("error", e);
+            }
         }
+        model.addAttribute("result", "Not found");
         return "findAlbum";
     }
 }
