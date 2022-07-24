@@ -54,12 +54,20 @@ public class VkPhotoService {
     private URI getImageURIFromSizes(List<PhotoSizes> sizes, int height) {
         if (sizes != null && !sizes.isEmpty()) {
             if (height > 0) {
-                Optional<PhotoSizes> result = sizes.stream().filter(photoSizes -> photoSizes.getHeight() == height).findFirst();
+                Optional<PhotoSizes> result = sizes.stream()
+                        .filter(photoSizes -> photoSizes.getHeight() == height)
+                        .max(Comparator.comparingInt(PhotoSizes::getWidth));
                 if (result.isPresent()) {
                     return result.get().getUrl();
                 }
             }
-            return sizes.stream().max(Comparator.comparingInt(PhotoSizes::getHeight)).get().getUrl();
+            int maxHeight = sizes.stream()
+                    .mapToInt(PhotoSizes::getHeight)
+                    .max().getAsInt();
+            return sizes.stream()
+                    .filter(size -> size.getHeight() == maxHeight)
+                    .max(Comparator.comparingInt(PhotoSizes::getWidth))
+                    .get().getUrl();
         }
         return null;
     }
