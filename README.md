@@ -130,9 +130,8 @@ https://vk-media-prod-vk-media-3oqoex.mo2.mogenius.io/photos/findPhotosByTag
 
 ## <a name="mobile"></a>Mobile app
 
-### Google Play
-
-https://play.google.com/store/apps/details?id=com.guiess.gr_media_app
+[Google Play](https://play.google.com/store/apps/details?id=com.guiess.gr_media_app)  
+[AppStore](https://apps.apple.com/us/app/gr-media/id1634495080)
 
 ## <a name="test"></a>Useful test links
 
