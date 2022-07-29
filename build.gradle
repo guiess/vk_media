@@ -28,10 +28,6 @@ dependencies {
 
 	implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
 	implementation 'javax.servlet:jstl'
-	implementation 'org.slf4j:slf4j-jdk14:1.7.26'
-	implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
-	implementation 'org.apache.logging.log4j:log4j-api:2.11.2'
-	implementation 'org.apache.logging.log4j:log4j-core:2.11.2'
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	compileOnly 'org.projectlombok:lombok'
