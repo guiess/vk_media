@@ -9,8 +9,10 @@ VK is a social network (https://vk.com/) with a massive media support
 like storing and sharing of images, music, video.
 
 Consists of 2 microservices:
- - VK Media service - works with VK
- - Tagged Image service - works with DB, provides lists of available tags and images by tags
+ - VK Media service - works with VK  
+   Code: https://github.com/guiess/vk_media/tree/release/r1
+ - Tagged Image service - works with DB, provides lists of available tags and images by tags  
+   Code: https://github.com/guiess/tagged_image/tree/release
 
 ## Context
 1. [VK Media UI](#vk-media-ui)
