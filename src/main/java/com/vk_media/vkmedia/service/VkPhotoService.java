@@ -7,10 +7,8 @@ import com.vk.api.sdk.objects.photos.PhotoAlbumFull;
 import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithTags;
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
-import java.lang.Math;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,11 +21,11 @@ public class VkPhotoService {
     public final int PHOTO_BATCH_SIZE = 50;
 
     VkAuthService vkAuthService;
-    MongoPhotoService mongoPhotoService;
+    PhotoService photoService;
 
-    public VkPhotoService(VkAuthService vkAuthService, MongoPhotoService mongoPhotoService) {
+    public VkPhotoService(VkAuthService vkAuthService, PhotoService photoService) {
         this.vkAuthService = vkAuthService;
-        this.mongoPhotoService = mongoPhotoService;
+        this.photoService = photoService;
     }
 
     public List<Album> getPhotoAlbums() {
@@ -47,19 +45,36 @@ public class VkPhotoService {
         return Collections.EMPTY_LIST;
     }
 
-    private URI getImageURIFromSizes(List<PhotoSizes> sizes) {
-        return getImageURIFromSizes(sizes, 0);
+    private URI getPreviewImageURIFromSizes(List<PhotoSizes> sizes) {
+        if (sizes != null && !sizes.isEmpty()) {
+            OptionalInt optionalHeight = sizes.stream()
+                    .mapToInt(PhotoSizes::getHeight)
+                    .filter(x -> x > 100)
+                    .min();
+            int height = optionalHeight.isPresent() ? optionalHeight.getAsInt() :
+                    sizes.stream().mapToInt(PhotoSizes::getHeight).max().getAsInt();
+
+            Optional<PhotoSizes> result = sizes.stream()
+                    .filter(size -> size.getHeight() == height)
+                    .min(Comparator.comparingInt(PhotoSizes::getWidth));
+            if (result.isPresent()) {
+                return result.get().getUrl();
+            }
+        }
+        return null;
     }
 
-    private URI getImageURIFromSizes(List<PhotoSizes> sizes, int height) {
+    private URI getImageURIFromSizes(List<PhotoSizes> sizes) {
         if (sizes != null && !sizes.isEmpty()) {
-            if (height > 0) {
-                Optional<PhotoSizes> result = sizes.stream().filter(photoSizes -> photoSizes.getHeight() == height).findFirst();
-                if (result.isPresent()) {
-                    return result.get().getUrl();
-                }
+            int maxHeight = sizes.stream()
+                    .mapToInt(PhotoSizes::getHeight)
+                    .max().getAsInt();
+            Optional<PhotoSizes> result = sizes.stream()
+                    .filter(size -> size.getHeight() == maxHeight)
+                    .max(Comparator.comparingInt(PhotoSizes::getWidth));
+            if (result.isPresent()) {
+                return result.get().getUrl();
             }
-            return sizes.stream().max(Comparator.comparingInt(PhotoSizes::getHeight)).get().getUrl();
         }
         return null;
     }
@@ -86,7 +101,7 @@ public class VkPhotoService {
                 .getItems();
 
         List<String> vkIds = photos.stream().map(photo -> photo.getId().toString()).collect(Collectors.toList());
-        Map<String, PhotoWithTags> existingPhotos = mongoPhotoService.getPhotosByVkIds(vkIds, albumId).stream()
+        Map<String, PhotoWithTags> existingPhotos = photoService.getPhotosByVkIds(vkIds, albumId).stream()
                 .collect(Collectors.toMap(PhotoWithTags::getVkId, photo -> photo));
         return photos.stream()
                 .map(photo -> getPhotoWithTags(photo, albumId, existingPhotos.get(photo.getId().toString())))
@@ -98,7 +113,7 @@ public class VkPhotoService {
             if (StringUtils.isNotEmpty(photo.getText()) &&
                     !existingPhoto.getTags().equals(photo.getText())) {
                 existingPhoto.mergeTags(photo.getText());
-                mongoPhotoService.updateTags(existingPhoto);
+                photoService.putPhotoWithTags(existingPhoto);
                 try {
                     savePhotoTags(existingPhoto);
                 } catch (ClientException | ApiException e) {
@@ -108,13 +123,15 @@ public class VkPhotoService {
             return existingPhoto;
         }
         PhotoWithTags newPhoto = new PhotoWithTags(
-                ObjectId.get(),
+                null,
                 photo.getId().toString(),
                 albumId,
-                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                getPreviewImageURIFromSizes(photo.getSizes()).toString(),
                 getImageURIFromSizes(photo.getSizes()).toString(),
                 photo.getText());
-        mongoPhotoService.putPhotoWithTags(newPhoto);
+        if (StringUtils.isNotEmpty(newPhoto.getTags().trim())) {
+            photoService.putPhotoWithTags(newPhoto);
+        }
         return newPhoto;
     }
 
@@ -127,10 +144,10 @@ public class VkPhotoService {
 
         Photo photo = photos.get(0);
         return new PhotoWithTags(
-                ObjectId.get(),
+                null,
                 photo.getId().toString(),
                 photo.getAlbumId(),
-                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                getPreviewImageURIFromSizes(photo.getSizes()).toString(),
                 getImageURIFromSizes(photo.getSizes()).toString(),
                 photo.getText());
     }
@@ -141,6 +158,6 @@ public class VkPhotoService {
     }
 
     private int getPagesAmount(int photosAmount) {
-        return (photosAmount + PHOTO_BATCH_SIZE -1) / PHOTO_BATCH_SIZE;
+        return (photosAmount + PHOTO_BATCH_SIZE - 1) / PHOTO_BATCH_SIZE;
     }
 }

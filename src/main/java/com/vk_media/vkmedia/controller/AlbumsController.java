@@ -1,7 +1,7 @@
 package com.vk_media.vkmedia.controller;
 
 import com.vk_media.vkmedia.dto.Album;
-import com.vk_media.vkmedia.service.MongoPhotoService;
+import com.vk_media.vkmedia.service.PhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.*;
 public class AlbumsController {
 
     VkPhotoService vkPhotoService;
-    MongoPhotoService mongoPhotoService;
+    PhotoService photoService;
 
-    public AlbumsController(VkPhotoService vkPhotoService, MongoPhotoService mongoPhotoService) {
+    public AlbumsController(VkPhotoService vkPhotoService, PhotoService photoService) {
         this.vkPhotoService = vkPhotoService;
-        this.mongoPhotoService = mongoPhotoService;
+        this.photoService = photoService;
     }
 
     @GetMapping
@@ -35,7 +35,7 @@ public class AlbumsController {
         try {
             model.addAttribute("album", vkPhotoService.getAlbumById(id));
             model.addAttribute("photos", vkPhotoService.getPhotosByAlbumId(id, page));
-            model.addAttribute("tags", mongoPhotoService.getExistingTags());
+            model.addAttribute("tags", photoService.getExistingTags());
             model.addAttribute("page", page);
         } catch (Exception e) {
             e.printStackTrace();
