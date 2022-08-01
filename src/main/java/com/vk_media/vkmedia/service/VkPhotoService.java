@@ -45,27 +45,36 @@ public class VkPhotoService {
         return Collections.EMPTY_LIST;
     }
 
-    private URI getImageURIFromSizes(List<PhotoSizes> sizes) {
-        return getImageURIFromSizes(sizes, 0);
+    private URI getPreviewImageURIFromSizes(List<PhotoSizes> sizes) {
+        if (sizes != null && !sizes.isEmpty()) {
+            OptionalInt optionalHeight = sizes.stream()
+                    .mapToInt(PhotoSizes::getHeight)
+                    .filter(x -> x > 100)
+                    .min();
+            int height = optionalHeight.isPresent() ? optionalHeight.getAsInt() :
+                    sizes.stream().mapToInt(PhotoSizes::getHeight).max().getAsInt();
+
+            Optional<PhotoSizes> result = sizes.stream()
+                    .filter(size -> size.getHeight() == height)
+                    .min(Comparator.comparingInt(PhotoSizes::getWidth));
+            if (result.isPresent()) {
+                return result.get().getUrl();
+            }
+        }
+        return null;
     }
 
-    private URI getImageURIFromSizes(List<PhotoSizes> sizes, int height) {
+    private URI getImageURIFromSizes(List<PhotoSizes> sizes) {
         if (sizes != null && !sizes.isEmpty()) {
-            if (height > 0) {
-                Optional<PhotoSizes> result = sizes.stream()
-                        .filter(photoSizes -> photoSizes.getHeight() == height)
-                        .max(Comparator.comparingInt(PhotoSizes::getWidth));
-                if (result.isPresent()) {
-                    return result.get().getUrl();
-                }
-            }
             int maxHeight = sizes.stream()
                     .mapToInt(PhotoSizes::getHeight)
                     .max().getAsInt();
-            return sizes.stream()
+            Optional<PhotoSizes> result = sizes.stream()
                     .filter(size -> size.getHeight() == maxHeight)
-                    .max(Comparator.comparingInt(PhotoSizes::getWidth))
-                    .get().getUrl();
+                    .max(Comparator.comparingInt(PhotoSizes::getWidth));
+            if (result.isPresent()) {
+                return result.get().getUrl();
+            }
         }
         return null;
     }
@@ -117,7 +126,7 @@ public class VkPhotoService {
                 null,
                 photo.getId().toString(),
                 albumId,
-                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                getPreviewImageURIFromSizes(photo.getSizes()).toString(),
                 getImageURIFromSizes(photo.getSizes()).toString(),
                 photo.getText());
         if (StringUtils.isNotEmpty(newPhoto.getTags().trim())) {
@@ -138,7 +147,7 @@ public class VkPhotoService {
                 null,
                 photo.getId().toString(),
                 photo.getAlbumId(),
-                getImageURIFromSizes(photo.getSizes(), 133).toString(),
+                getPreviewImageURIFromSizes(photo.getSizes()).toString(),
                 getImageURIFromSizes(photo.getSizes()).toString(),
                 photo.getText());
     }
@@ -149,6 +158,6 @@ public class VkPhotoService {
     }
 
     private int getPagesAmount(int photosAmount) {
-        return (photosAmount + PHOTO_BATCH_SIZE -1) / PHOTO_BATCH_SIZE;
+        return (photosAmount + PHOTO_BATCH_SIZE - 1) / PHOTO_BATCH_SIZE;
     }
 }
