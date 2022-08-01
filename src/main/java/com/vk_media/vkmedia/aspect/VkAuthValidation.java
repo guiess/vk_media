@@ -16,8 +16,7 @@ public class VkAuthValidation {
         this.vkAuthService = vkAuthService;
     }
 
-    @Before("execution(* com.vk_media.vkmedia.controller.AlbumsController.*(..))" +
-            " || execution(* com.vk_media.vkmedia.controller.PhotosController.addPhoto(..))")
+    @Before("execution(* com.vk_media.vkmedia.controller.AlbumsController.*(..))")
     public void checkVkAuth() throws VkUnauthenticatedException {
         if (!vkAuthService.isAuthorized()) {
             throw new VkUnauthenticatedException();
