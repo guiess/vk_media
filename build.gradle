@@ -5,6 +5,12 @@ plugins {
 	id 'war'
 }
 
+war {
+//jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
 group = 'com.vk_media'
 version = '1.0.0-SNAPSHOT'
 
