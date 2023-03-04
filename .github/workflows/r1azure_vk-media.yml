@@ -53,4 +53,4 @@ jobs:
           app-name: 'vk-media'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6770EB9F34434982BF4C82F48A8D24FE }}
-          package: '*.jar'
+          package: '*.war'
