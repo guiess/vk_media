@@ -21,8 +21,11 @@ jobs:
         with:
           java-version: '8'
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run build with Gradle Wrapper
+        run: ./gradlew assemble
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
