@@ -10,6 +10,7 @@ war {
 //jar {
     enabled = true
     archiveClassifier = ''
+	archiveFileName = 'app.jar'
 	manifest {
 		attributes(
 			'Main-Class': 'com.vk_media.VkMedia'
