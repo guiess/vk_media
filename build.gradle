@@ -6,7 +6,7 @@ plugins {
 	id 'war'
 }
 
-war {
+/*war {
 //jar {
     enabled = true
     archiveClassifier = ''
@@ -16,7 +16,7 @@ war {
 				'Main-Class': 'com.vk_media.vkmedia.VkMediaApplication'
 		)
 	}
-}
+}*/
 
 group = 'com.vk_media'
 version = '1.0.0-SNAPSHOT'
