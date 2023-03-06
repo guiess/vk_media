@@ -27,11 +27,14 @@ jobs:
       - name: Run build with Gradle Wrapper
         run: ./gradlew assemble
 
+      - name: rename to app.jar
+        run: find ${{ github.workspace }}/build/libs/ -name "*SNAPSHOT.war" -exec sh -c 'mv "$1" "${{ github.workspace }}/build/libs/app.jar"' _ {} \;
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: java-app
-          path: '${{ github.workspace }}/build/libs/*SNAPSHOT.war'
+          path: '${{ github.workspace }}/build/libs/app.jar'
 
   deploy:
     runs-on: ubuntu-latest
@@ -53,4 +56,4 @@ jobs:
           app-name: 'vk-media'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6770EB9F34434982BF4C82F48A8D24FE }}
-          package: '*.war'
+          package: '*.jar'
