@@ -101,8 +101,9 @@ public class VkPhotoService {
                 .getItems();
 
         List<String> vkIds = photos.stream().map(photo -> photo.getId().toString()).collect(Collectors.toList());
-        Map<String, PhotoWithTags> existingPhotos = photoService.getPhotosByVkIds(vkIds, albumId).stream()
-                .collect(Collectors.toMap(PhotoWithTags::getVkId, photo -> photo));
+        List<PhotoWithTags> photoWithTags = photoService.getPhotosByVkIds(vkIds, albumId);
+        Map<String, PhotoWithTags> existingPhotos = photoWithTags != null? photoWithTags.stream()
+                .collect(Collectors.toMap(PhotoWithTags::getVkId, photo -> photo)) : new HashMap<>();
         return photos.stream()
                 .map(photo -> getPhotoWithTags(photo, albumId, existingPhotos.get(photo.getId().toString())))
                 .collect(Collectors.toList());

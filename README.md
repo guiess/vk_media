@@ -32,7 +32,7 @@ Consists of 2 microservices:
 
 ### Main page
 initial page with VK auth and link to VK photo albums after the successful auth:  
-https://vk-media-prod-vk-media-3oqoex.mo2.mogenius.io
+https://vk-media.azurewebsites.net/
    
 ### User Albums
 
@@ -66,14 +66,14 @@ Requires VK auth both for work and outside access prohibition
 
 ### Add image with tag:
 
-~~https://tagged-image-prod-vk-media-3oqoex.mo2.mogenius.io/photos/addPhotoWithTag~~
+~~https://tagged-image.azurewebsites.net/photos/addPhotoWithTag~~
 
 __Disabled at the moment__
 ![add image](./img/add_image_with_tag.JPG)
    
 ### Find photos by tag:  
 
-https://tagged-image-prod-vk-media-3oqoex.mo2.mogenius.io/photos/findPhotosByTag
+https://tagged-image.azurewebsites.net/photos/findPhotosByTag
 
 ![find image](./img/find_image_by_tag.JPG)
    

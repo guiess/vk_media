@@ -1,9 +1,22 @@
 plugins {
 	id 'org.springframework.boot' version '2.7.1-SNAPSHOT'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id "com.microsoft.azure.azurewebapp" version "1.7.0"
 	id 'java'
 	id 'war'
 }
+
+/*war {
+//jar {
+    enabled = true
+    archiveClassifier = ''
+	//archiveFileName = 'app.war'
+	manifest {
+		attributes(
+				'Main-Class': 'com.vk_media.vkmedia.VkMediaApplication'
+		)
+	}
+}*/
 
 group = 'com.vk_media'
 version = '1.0.0-SNAPSHOT'
