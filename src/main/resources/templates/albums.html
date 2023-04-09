@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>VK Albums</title>
+</head>
+<body>
+Albums
+<table id="albumTable">
+    <tbody>
+
+    <!--<tr style="vertical-align: top" th:each="album, i : ${albums}">
+            <td>
+                <a th:href="@{/albums/{id}(id=${album.id})}">
+                    <img th:title="${album.title}" th:alt="${album.title}" th:src="${album.coverURI}" height="100">
+                </a> <br>
+                <span th:text="${album.title}"></span>
+
+            </td>
+            <th:block th:if="${i.count % 5 == 0}">
+                </tr><tr>
+            </th:block>
+    </tr>-->
+    <!--<tr th:each="album,iter : ${albums}" th:if="${iter.index % 5 == 0}">
+        <td th:text="${album.title}"></td>
+        <td th:text="${albums[iter.index + 1].title}" th:if="${iter.index + 1 lt albums.size()}"></td>
+        <td th:text="${albums[iter.index + 2].title}" th:if="${iter.index + 2 lt albums.size()}"></td>
+        <td th:text="${albums[iter.index + 3].title}" th:if="${iter.index + 3 lt albums.size()}"></td>
+        <td th:text="${albums[iter.index + 4].title}" th:if="${iter.index + 4 lt albums.size()}"></td>
+    </tr>-->
+
+    </tbody>
+</table>
+<br>
+<div th:if="${error != null}" style="color:red">
+    Error: <span th:text="${error}"></span><br>
+</div>
+
+<script th:inline="javascript">
+
+    fillTable();
+
+    function fillTable() {
+        const objectList = [[${albums}]];
+
+        const tableBody = document.querySelector("#albumTable tbody");
+
+        let row = tableBody.insertRow();
+        let cellIndex = 0;
+
+        for (let i = 0; i < objectList.length; i++) {
+            const object = objectList[i];
+
+            if (cellIndex === 5) {
+                row = tableBody.insertRow();
+                cellIndex = 0;
+            }
+
+            const cell = row.insertCell();
+            const link = document.createElement("a");
+            link.href = "/albums/" + object.id;
+            const albumCover = document.createElement("img");
+            albumCover.src = object.coverURI;
+            link.append(albumCover)
+
+            const br = document.createElement("br");
+            var title = document.createTextNode(object.title)
+
+            cell.appendChild(link);
+            cell.appendChild(br);
+            cell.appendChild(title);
+
+            cellIndex++;
+        }
+    }
+</script>
+</body>
+</html>

@@ -43,29 +43,4 @@ public class AlbumsController {
         }
         return "album";
     }
-
-    @GetMapping("/find")
-    public String findAlbum(Model model) {
-        return "findAlbum";
-    }
-
-    @PostMapping("/find")
-    public String showFoundAlbum(@ModelAttribute("id") Integer id, Model model) {
-        if (id != 0) {
-            try {
-            Album album = vkPhotoService.getAlbumById(id);
-            if (album != null) {
-                model.addAttribute("album", vkPhotoService.getAlbumById(id));
-                return "redirect:/albums/" + id;
-            } else {
-                model.addAttribute("result", "Not found");
-            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                model.addAttribute("error", e);
-            }
-        }
-        model.addAttribute("result", "Not found");
-        return "findAlbum";
-    }
 }

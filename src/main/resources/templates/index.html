@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>VK Media</title>
+</head>
+<body>
+isAuthorized: [[${isAuthorized}]] <br>
+authUrl: <a th:href="${authUrl}">Authorize in VK</a><br>
+<div th:if="${isAuthorized}">
+    <a th:href="@{/albums}">Photos</a> <br>
+</div>
+<div th:if="${error != null}">
+    <div style="color:red">
+        Error: [[${error}]]<br>
+    </div>
+</div>
+</body>
+</html>

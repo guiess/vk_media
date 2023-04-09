@@ -28,7 +28,7 @@ jobs:
         run: ./gradlew assemble
 
       - name: rename to app.jar
-        run: find ${{ github.workspace }}/build/libs/ -name "*SNAPSHOT.war" -exec sh -c 'mv "$1" "${{ github.workspace }}/build/libs/app.jar"' _ {} \;
+        run: find ${{ github.workspace }}/build/libs/ -name "*SNAPSHOT.jar" -exec sh -c 'mv "$1" "${{ github.workspace }}/build/libs/app.jar"' _ {} \;
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2

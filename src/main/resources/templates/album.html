@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>VK Albums</title>
+    <script th:src="@{https://code.jquery.com/jquery-3.6.0.min.js}"></script>
+</head>
+<body>
+<br>
+<a href="/albums">Back to albums</a>
+<br>
+<br>
+<span th:text="${album.title}"></span><br>
+<img th:title="title" th:alt="alt" th:src="${album.coverURI}" height="100">
+<br>
+
+<table>
+    <tbody>
+    <tr style="vertical-align: top">
+
+        <td>
+            <table id="photoTable">
+                <tbody>
+                    <tr style="vertical-align: top">
+                        <td>
+                            <a th:if="${page > 1}" th:href="@{/albums/{id}(id=${album.id},page=${page - 1})}">Previous</a>
+                            <a th:if="${page < album.pages}" th:href="@{/albums/{id}(id=${album.id},page=${page + 1})}">Next</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+
+        <td>
+            <input type="checkbox" th:id="editTagToggle" name="editToggle" th:onclick="javascript:toggleEdit()">
+            <label th:for="editToggle"> Edit tags</label><br>
+            <div th:hidden="hidden" th:id="editTagsDiv">
+                <table>
+                    <tr>
+                        <td><label>Tag</label></td>
+                        <td><input th:id="tagField" type="text" name="tag" th:value="${tag}" />
+                            <button type="button" th:onclick="javascript:clearTagField()">Clear</button></td>
+                    </tr>
+                    <tr>
+                        <td><button type="button" th:onclick="javascript:addPhoto()">Add</button></td>
+                    </tr>
+                </table>
+                <div id="tags" th:if="${tags != null}">
+                    Existing tags (click to add): <br>
+                </div>
+                <div th:hidden="hidden" th:id="savingError" style="color:red"></div>
+            </div>
+        </td>
+
+    </tr>
+    </tbody>
+</table>
+
+<br>
+
+
+<div th:if="${error != null}">
+    Error: ${error}<br>
+</div>
+
+<script th:inline="javascript">
+    fillTable();
+    fillTagsList();
+
+    function fillTable() {
+        const objectList = [[${photos}]];
+
+        const tableBody = document.querySelector("#photoTable tbody");
+
+        let row = tableBody.insertRow();
+        let cellIndex = 0;
+
+        for (let i = 0; i < objectList.length; i++) {
+            const object = objectList[i];
+
+            if (cellIndex === 5) {
+                row = tableBody.insertRow();
+                cellIndex = 0;
+            }
+
+            const cell = row.insertCell();
+            const image = document.createElement("img");
+            image.src = object.previewPhotoURI != null ? object.previewPhotoURI : object.photoURI;
+            image.id = object.vkId;
+            image.setAttribute("albumId", object.albumId);
+            image.onclick = () => onImageClick(object.vkId, object.photoURI, object.tags);
+            image.height = 100;
+
+            const br = document.createElement("br");
+
+            const tags = document.createElement("u");
+            tags.id = 'tags-' + object.vkId;
+            tags.textContent = object.tags;
+
+            cell.appendChild(image);
+            cell.appendChild(br);
+            cell.appendChild(tags);
+
+            cellIndex++;
+        }
+    }
+
+    function fillTagsList() {
+        const objectList = [[${tags}]];
+
+        const tags = document.querySelector("#tags");
+
+        for (let i = 0; i < objectList.length; i++) {
+
+            if (i % 5 === 0) {
+                const br = document.createElement("br");
+                tags.appendChild(br);
+            }
+            const tag = document.createElement("u");
+            tag.onclick = () => addTagToField(objectList[i]);
+            tag.innerHTML = objectList[i];
+
+            tags.appendChild(tag);
+            tags.appendChild(document.createTextNode(" "));
+        }
+    }
+
+    function addTagToField(tag)
+    {
+        document.getElementById("tagField").value = document.getElementById("tagField").value + ' ' + tag
+    }
+    function clearTagField()
+    {
+        document.getElementById("tagField").value = ''
+    }
+    function toggleEdit()
+    {
+        element = document.getElementById("editTagsDiv");
+        if (element.hidden) {
+            element.hidden = false
+        } else {
+            element.hidden = true
+            selectedImage = document.getElementsByName("selected-image")
+            if (selectedImage.length > 0) {
+                selectedImage[0].style.border = "";
+                selectedImage[0].removeAttribute("name")
+            }
+        }
+    }
+    function onImageClick(id, url, tags) {
+        editDiv = document.getElementById("editTagsDiv");
+        if (!editDiv.hidden) {
+            selectedImage = document.getElementsByName("selected-image")
+            if (selectedImage.length > 0) {
+                selectedImage[0].style.border = "";
+                selectedImage[0].removeAttribute("name")
+            }
+            newImage = document.getElementById(id);
+            newImage.style.border = "10px solid blue";
+            newImage.setAttribute("name", "selected-image")
+            document.getElementById("tagField").value = tags
+        } else {
+            window.open(url, "_blank", "scrollbars=1,resizable=1,height=1280,width=1024");
+        }
+    }
+    function addPhoto() {
+        selectedImage = document.getElementsByName("selected-image")
+        if (selectedImage.length > 0) {
+            photoVkId = selectedImage[0].id
+            albumId = selectedImage[0].getAttribute("albumId")
+            tag = document.getElementById("tagField").value
+            $.ajax({
+                url: '/photos/addPhotoWithTagRest',
+                method : 'POST',
+                contenttype: 'application/json',
+                async : false,
+                data: {
+                    photoVkId: photoVkId,
+                    albumId: albumId,
+                    tags: tag
+                },
+                dataType : 'json',
+                complete : function(data) {
+                    savingErrorField = document.getElementById("savingError")
+                    if (data.responseText !== 'Success') {
+                        if (savingErrorField.hidden) {
+                            savingErrorField.hidden = false
+                        }
+                        savingErrorField.innerText = 'Error on saving tags: ' + data.responseText
+                    } else {
+                        if (!savingErrorField.hidden) {
+                            savingErrorField.hidden = true
+                            savingErrorField.innerText = ''
+                        }
+                        document.getElementById("tags-" + photoVkId).innerText = tag
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+
+</body>
+</html>
