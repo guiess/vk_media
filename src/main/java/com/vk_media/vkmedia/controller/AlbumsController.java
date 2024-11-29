@@ -1,11 +1,15 @@
 package com.vk_media.vkmedia.controller;
 
+import com.vk.api.sdk.exceptions.ApiException;
+import com.vk.api.sdk.exceptions.ClientException;
 import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.service.PhotoService;
 import com.vk_media.vkmedia.service.VkPhotoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/albums")
@@ -42,5 +46,11 @@ public class AlbumsController {
             model.addAttribute("error", e);
         }
         return "album";
+    }
+
+    @GetMapping("/download")
+    public String downloadAlbums() throws ClientException, ApiException, IOException {
+        vkPhotoService.downloadAllPhotos();
+        return "index";
     }
 }

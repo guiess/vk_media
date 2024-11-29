@@ -9,8 +9,15 @@ import com.vk_media.vkmedia.dto.Album;
 import com.vk_media.vkmedia.dto.PhotoWithTags;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
 import java.net.URI;
+import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +39,7 @@ public class VkPhotoService {
         if (vkAuthService.isAuthorized()) {
             try {
                 List<PhotoAlbumFull> photoAlbumFulls = vkAuthService.getVkApiClient()
-                        .photos().getAlbums(vkAuthService.getActor()).needCovers(true).execute().getItems();
+                        .photos().getAlbums(vkAuthService.getActor()).needSystem(true).needCovers(true).execute().getItems();
                 return photoAlbumFulls.stream()
                         .map(album -> new Album(album.getId(), album.getTitle(), album.getThumbSrc(),
                                 getPagesAmount(album.getSize())))
@@ -81,7 +88,7 @@ public class VkPhotoService {
 
     public Album getAlbumById(Integer albumId) throws ClientException, ApiException {
         List<PhotoAlbumFull> photoAlbumFulls = vkAuthService.getVkApiClient()
-                .photos().getAlbums(vkAuthService.getActor()).albumIds(albumId).needCovers(true).execute().getItems();
+                .photos().getAlbums(vkAuthService.getActor()).needSystem(true).albumIds(albumId).needCovers(true).execute().getItems();
         if (photoAlbumFulls != null && !photoAlbumFulls.isEmpty()) {
             PhotoAlbumFull photoAlbumFull = photoAlbumFulls.get(0);
             return new Album(photoAlbumFull.getId(), photoAlbumFull.getTitle(),
@@ -160,5 +167,112 @@ public class VkPhotoService {
 
     private int getPagesAmount(int photosAmount) {
         return (photosAmount + PHOTO_BATCH_SIZE - 1) / PHOTO_BATCH_SIZE;
+    }
+
+    public void downloadAllPhotos() throws ClientException, ApiException, IOException {
+        List<Album> albums = getPhotoAlbums();
+
+        AtomicReference<Integer> failures = new AtomicReference<>(0);
+
+        for (Album album : albums) {
+            String albumFolderName = "downloads/photos/" + album.getTitle() + "_" + album.getId();
+            File albumFolder = new File(albumFolderName);
+            if (!albumFolder.exists()) {
+                albumFolder.mkdirs();
+            }
+            System.out.println("Start downloading album: " + album.getTitle());
+            for (int page = 0; page < album.getPages(); page++) {
+                System.out.println("Downloading album: " + album.getTitle() + "; page " + page + " of " + album.getPages());
+                List<Photo> photos = vkAuthService.getVkApiClient()
+                        .photos()
+                        .get(vkAuthService.getActor())
+                        .albumId(album.getId().toString())
+                        .offset(PHOTO_BATCH_SIZE * (page))
+                        .extended(true)
+                        .execute()
+                        .getItems();
+
+                /*photos.parallelStream().forEach(photo -> {
+                    boolean result = false;
+                    try {
+                        result = downloadPhoto(photo, albumFolder);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (!result) {
+                        failures.getAndSet(failures.get() + 1);
+
+                    }
+                });
+
+                if (failures.get() > MAX_ERRORS) {
+                    System.out.println("Max errors amount reached. terminate");
+                }*/
+
+                List<Future<Void>> futures = new ArrayList<>();
+
+                int index = PHOTO_BATCH_SIZE * (page) + 1;
+                for (Photo photo : photos) {
+                    int finalIndex = index;
+                    futures.add(executorService.submit(() -> {
+                        boolean result = false;
+                        try {
+                            result = downloadPhoto(finalIndex, photo, albumFolder);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (!result) {
+                            failures.getAndSet(failures.get() + 1);
+                        }
+                        return null;
+                    }));
+                    index++;
+                }
+
+                for (Future future : futures) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        System.err.println("Error in task: " + e.getMessage());
+                    }
+                }
+            }
+            System.out.println("Finish downloading album: " + album.getTitle());
+        }
+    }
+
+    private final int MAX_ERRORS = 20;
+    private static final int THREAD_POOL_SIZE = 30; // Adjust according to your needs
+    private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
+    private boolean downloadPhoto(int index, Photo photo, File albumFolder) throws IOException {
+
+        String photoId = photo.getId().toString();
+        File photoFile = new File(albumFolder, /*index + "_" + */photoId + ".jpg");
+
+        if (photoFile.exists()) {
+            System.out.println("File already exists: " + photoFile.getPath());
+            return true;
+        }
+
+        String photoUrl = getImageURIFromSizes(photo.getSizes()).toString();
+
+        try (InputStream in = new URL(photoUrl).openStream();
+             OutputStream out = new FileOutputStream(photoFile)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            // Delete the file if download failed
+            System.out.println("Problem with downloading file: " + photoFile.getPath() + "; e: " + e.getMessage());
+            if (photoFile.exists()) {
+                photoFile.delete();
+            }
+
+            return false; // Rethrow the exception for further handling
+        }
+        return true;
     }
 }
